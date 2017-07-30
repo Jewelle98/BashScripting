@@ -542,6 +542,654 @@ then
 
 fi
 
+# 3.3 Coding
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.3 Remediation: Disable Avahi Server\e[0m\n"
+
+
+
+checkavahi=`systemctl status avahi-daemon | grep inactive`
+
+checkavahi1=`systemctl status avahi-daemon | grep disabled`
+
+
+
+# If $checkavahi is NULL OR $checkavahi1 IS NULL
+
+# If Avachi Server is ACTIVE or ENABLED
+
+if [ -z "$checkavahi" -o -z "$checkavahi1" ]
+
+then    
+
+        printf "Confguring settings...\n"
+
+        systemctl disable avahi-daemon.service avahi-daemon.socket
+
+        systemctl stop avahi-daemon.service avahi-daemon.socket
+
+        yum remove -y aivahi-autoipd avahi-libs avahi
+
+        printf "Avahi Server has been disabled : SUCCESSFUL\n\n"
+
+fi              
+
+
+
+==========================================================================
+
+
+
+# 3.4 Coding
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.4 Remediation: Disable Print Server - Cups\e[0m\n"
+
+
+
+checkcupsinstalled=`yum list cups | grep "Available Packages" ` 
+
+checkcups=`systemctl status cups | grep inactive`
+
+checkcups1=`systemctl status cups | grep disabled`
+
+if [ -z "$checkcupsinstalled" ]
+
+then    
+
+        # If $checkcups is NULL or $checkcups1 is NULL
+
+        if [ -z "$checkcups" -o -z "$checkcups1" ]
+
+        then    
+
+                printf "Configuring settings...\n"
+
+                systemctl stop cups
+
+                systemctl disable cups
+
+                printf "Print Server [Cups] has been disabled : SUCCESSFUL\n\n"
+
+        fi      
+
+fi                                                 
+
+
+
+=============================================================================
+
+
+
+# 3.5 coding
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.5 Remediation: Remove DHCP Server\e[0m\n"
+
+
+
+
+
+#Check if it has been installed
+
+checkyumdhcp=`yum list dhcp | grep "Available Packages" `
+
+#Check status of the server
+
+checkyumdhcpactive=`systemctl status dhcp | grep inactive `
+
+checkyumdhcpenable=`systemctl status dhcp | grep disabled `
+
+
+
+if [ -z "$checkyumdhcp" ]
+
+then
+
+        # If DHCP is either active or enabled
+
+        if [ -z "$checkyumdhcpactive" -o -z "$checkyumdhcpenable" ]
+
+        then
+
+                printf "Configuring settings...\n"
+
+                systemctl disable dhcpd
+
+                systemctl stop dhcpd
+
+                yum -y erase dhcpd
+
+                printf "DHCP Server has been removed : SUCCESSFUL\n\n"
+
+        else
+
+                printf "DHCP Server has already been removed - PASSED\n\n"
+
+        fi
+
+else
+
+        printf "DHCP Server has already been removed - PASSED\n\n"
+
+fi
+
+
+
+==================================================================================
+
+
+
+# 3.6 coding
+
+
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.6 Remediation: Configure Network Time Protocol (NTP)\e[0m\n"
+
+
+
+checkntpinstalled=`yum list ntp | grep "Installed"`
+
+
+
+if [ -z "$checkntpinstalled" ]
+
+
+
+then
+
+        printf "Network TIme Protocol Installation START\n"
+
+        printf "Installing Network TIme Protocol...\n\n"
+
+        yum install -y ntp
+
+        printf "Netowrk TIme Protocol has been installed!\n\n"
+
+fi
+
+
+
+checkyumntp=`yum list ntp | grep "Available Packages"`
+
+checkntp1=`grep "^restrict default" /etc/ntp.conf`
+
+checkntp2=`grep "^restrict -6 default" /etc/ntp.conf`
+
+checkntp3=`grep "^server" /etc/ntp.conf`
+
+checkntp4=`grep "ntp:ntp" /etc/sysconfig/ntpd`
+
+
+
+if [ -n "$checkyumntp" ]
+
+then
+
+        printf "Further Installation...\n\n"
+
+        yum install -y ntp
+
+        printf "Done\n\n"
+
+fi
+
+      
+
+
+
+if [ "$checkntp1" != "restrict default kod nomodify notrap nopeer noquery" ]
+
+then
+
+        printf "Configuring settings...\n\n"
+
+        sed -ie '8d' /etc/ntp.conf
+
+        sed -ie '8irestrict default kod nomodify notrap nopeer noquery' /etc/ntp.conf
+
+        printf "Setting has been corrected : SUCCESSFUL\n\n"
+
+fi
+
+
+
+
+
+if [ "$checkntp2" != "restrict -6 default kod nomodify notrap nopeer noquery" ]
+
+then
+
+        printf "Configuring settings...\n\n"
+
+        sed -ie '9irestrict -6 default kod nomodify notrap nopeer noquery' /etc/ntp.conf
+
+        printf "Setting has been corrected : SUCCESSFUL\n\n"
+
+fi
+
+
+
+
+
+if [ -z "$checkntp3" ]
+
+then
+
+        printf "Configuring settings...\n\n"
+
+        sed -ie '21iserver 10.10.10.10' /etc/ntp.conf #Assume 10.10.10.10 is NTP server
+
+        printf "Setting has been corrected : SUCCESSFUL\n\n"
+
+fi
+
+
+
+
+
+if [ -z "$checkntp4" ]
+
+then
+
+        printf "Configuring settings...\n\n"
+
+        sed -ie '2d' /etc/sysconfig/ntpd
+
+        echo "1iOPTIONS=\"-u ntp:ntp -p /var/run/ntpd.pid\" " >> /etc/sysconfig/ntpd
+
+        printf "Setting has been corrected : SUCCESSFUL\n\n"
+
+fi
+
+
+# 3.7
+echo -e "\e[4m3.7 : Remove LDAP\e[0m\n"
+checkldapclientinstalled=`yum list openldap-clients | grep "Available Packages"`
+checkldapserverinstalled=`yum list openldap-servers | grep "Available Packages"`
+
+if [ -z "$checkldapclientinstalled" ]
+then
+	yum  -y erase openldap-clients
+	echo "openldap-clients is now uninstalled"
+else
+	echo "openldap-clients is already uninstalled"
+fi
+printf "\n"
+if [ -z "$checkldapserverinstalled" ]
+then
+	yum -y erase openldap-servers
+	echo "openldap-servers is now uninstalled"
+else
+	echo "openldap-servers is already uninstalled"
+fi
+
+printf "\n\n"
+
+
+========================================================================================
+
+
+
+# 3.8 coding
+
+
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.8  Remediation: Disable NFS and RPC\e[0m\n"
+
+
+
+checknfslock=`systemctl is-enabled nfs-lock | grep "disabled"`
+
+checknfssecure=`systemctl is-enabled nfs-secure | grep "disabled"`
+
+checkrpcbind=`systemctl is-enabled rpcbind | grep "disabled"`
+
+checknfsidmap=`systemctl is-enabled nfs-idmap | grep "disabled"`
+
+checknfssecureserver=`systemctl is-enabled nfs-secure-server | grep "disabled"`
+
+
+
+if [ -z "$checknfslock" ]
+
+then
+
+        printf "Disabling nfs-lock...\n"
+
+        systemctl disable nfs-lock
+
+        printf "Nfs-lock has been disabled : SUCCESSFUL\n\n"
+
+else
+
+        printf "Nfs-lock has already been disabled - PASSED\n\n"
+
+fi
+
+
+
+if [ -z "$checknfssecure" ]
+
+then
+
+        printf "Disabling nfs-secure...\n"
+
+        systemctl disable nfs-secure
+
+        printf "Nfs-secure has been disabled : SUCCESSFUL\n\n"
+
+else
+
+        printf "Nfs-secure has already been disabled - PASSED\n\n"
+
+fi
+
+
+
+if [ -z "$checkrpcbind" ]
+
+then
+
+        printf "Disabling rpcbind...\n"
+
+        systemctl disable rpcbind 
+
+        printf "Rpcbind has been disabled : SUCCESSFUL\n\n"
+
+else
+
+        printf "Rpcbind has already been disabled - PASSED\n\n"
+
+fi
+
+
+
+if [ -z "$checknfsidmap" ]
+
+then
+
+        printf "Disabling nfs-idmap...\n"
+
+        systemctl disable nfs-idmap
+
+        printf "Nfs-idmap has been disabled : SUCCESSFUL\n\n"
+
+else
+
+        printf "Nfs-idmap has already been disabled - PASSED\n\n"
+
+fi
+
+
+
+if [ -z "$checknfssecureserver" ]
+
+then
+
+        printf "Disabling nfs-secure-server...\n"
+
+        systemctl disable nfs-secure-server
+
+        printf "Nfs-secure-server has been disabled : SUCCESSFUL\n\n"
+
+else
+
+        printf "Nfs-secure-server has already been disabled - PASSED\n\n"
+
+fi
+
+
+
+
+
+====================================================================================
+
+
+
+# 3.9 coding
+
+
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.9 Remediation: Remove DNS, FTP, HTTP, HTTP-Proxy, SNMP\e[0m\n"
+
+
+
+checkyumdns=`yum list bind | grep "Available Packages" `
+
+checkdns=`systemctl status named | grep inactive`
+
+checkdns1=`systemctl status named | grep disabled`
+
+if [ -z "$checkyumdns" ]
+
+then
+
+        if [ -z "$checkdns" -o -z "$checkdns1" ]
+
+        then
+
+                printf "Configuring Setting...\n"
+
+                systemctl stop named
+
+                systemctl disable named
+
+                printf "DNS has been removed : SUCCESSFUL\n\n"
+
+        fi
+
+else
+
+         printf "DNS is already removed - PASSED\n\n"
+
+fi
+
+
+
+checkyumftp=`yum list vsftpd | grep "Available Packages" `
+
+checkftp=`systemctl status vsftpd | grep inactive`
+
+checkftp1=`systemctl status vsftpd | grep disabled`
+
+if [ -z "$checkyumftp" ]
+
+then
+
+        if [ -z "$checkftp" -o -z "$checkftp1" ]
+
+        then
+
+                printf "Configuring Setting...\n"
+
+                systemctl stop vsftpd
+
+                systemctl disable vsftpd
+
+                printf "FTP has been removed : SUCCESSFUL\n\n"
+
+        fi
+
+else
+
+         printf "FTP is already removed - PASSED\n\n"
+
+fi
+
+
+
+checkyumhttp=`yum list httpd | grep "Available Packages" `
+
+checkhttp=`systemctl status httpd | grep inactive`
+
+checkhttp1=`systemctl status httpd | grep disabled`
+
+if [ -z "$checkyumhttp" ]
+
+then
+
+        if [ -z "$checkhttp" -o -z "$checkhttp1" ]
+
+        then
+
+                printf "Configuring Setting...\n"
+
+                systemctl stop httpd
+
+                systemctl disable httpd
+
+                printf "HTTP has been removed : SUCCESSFUL\n\n"
+
+        fi
+
+else
+
+         printf "HTTP is already removed - PASSED\n\n"
+
+fi
+
+
+
+checkyumsquid=`yum list squid | grep "Available Packages" `
+
+checksquid=`systemctl status squid | grep inactive`
+
+checksquid1=`systemctl status squid | grep disabled`
+
+if [ -z "$checkyumsquid" ]
+
+then
+
+        if [ -z "$checksquid" -o -z "$checksquid1" ]
+
+        then
+
+                printf "Configuring Setting...\n"
+
+                systemctl stop squid
+
+                systemctl disable squid
+
+                printf "HTTP-Proxy has been removed : SUCCESSFUL\n\n"
+
+        fi
+
+else
+
+         printf "HTTP-Proxy is already removed - PASSED\n\n"
+
+fi
+
+
+
+checkyumsnmp=`yum list net-snmp | grep "Available Packages" `
+
+checksnmp=`systemctl status snmpd | grep inactive`
+
+checksnmp1=`systemctl status snmpd | grep disabled`
+
+if [ -z "$checkyumsnmp" ]
+
+        then
+
+        if [ -z "$checksnmp" -o -z "$checsnmp1" ]
+
+        then
+
+                printf "Configuring Setting...\n"
+
+                systemctl stop snmpd
+
+                systemctl disable snmpd
+
+                printf "SNMP has been removed : SUCCESSFUL\n\n"
+
+        fi
+
+else
+
+         printf "SNMP is already removed - PASSED\n\n"
+
+fi
+
+
+
+=====================================================================================
+
+
+
+# 3.10 coding
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.10 Remediation: Configure Mail Transfer Agent for Local-Only Mode\e[0m\n"
+
+
+
+checkmta=`netstat -an | grep LIST | grep "127.0.0.1:25[[:space:]]"`
+
+
+
+if [ -z "$checkmta" ]
+
+then
+
+        printf "Configuring Settings...\n"
+
+        sed -ie '116iinet_interfaces = localhost' /etc/postfix/main.cf
+
+        systemctl restart postfix
+
+        printf "Mail Transfer Agent has been set : SUCCESSFUL\n\n"
+
+else
+
+        printf "MTA - PASSED (Settings have been configured CORRECTLY)\n\n"
+
+fi
+
+=======================================================================================
+
+
 # Start of 6.1.4 coding
 
 echo -e "\e[4m6.1.4 : Create and Set Permissions on rsyslog Log Files\e[0m"
