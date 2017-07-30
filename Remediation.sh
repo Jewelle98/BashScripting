@@ -1679,6 +1679,574 @@ fi
 
 printf "\n\n"
 
+x=0
+
+while [ $x = 0 ]
+
+do
+
+        clear
+
+        echo "Do you want to set all user hidden file permission as default? (y/n) - Press 'q' to quit."
+
+        read answer
+
+        case "$answer" in
+
+                y)
+
+                echo "You said - yes"
+
+                intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+                if [ -z "$intUserAcc" ]
+
+                then
+
+                        echo "There is no interactive user account."
+
+                        echo ' '
+
+                else
+
+                        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+                                hiddenfiles="$(echo .*)"
+
+
+
+                                if [ -z "$hiddenfiles" ]
+
+                                then
+
+                                        echo "There is no hidden files."
+
+                                else
+
+					for file in ${hiddenfiles[*]}
+
+                                        do
+
+                                                chmod g-w $file
+
+                                                chmod o-w $file
+
+                                                echo "User directory $line hidden file $file permission is set as default"
+
+                                        done
+
+                                fi
+
+                        done
+
+                fi
+
+                x=1
+
+                ;;
+
+                n)
+
+                echo "You said -No"
+
+                x=1
+
+                ;;
+
+                q)
+
+                x=1
+
+                echo "Exiting..."
+
+                sleep 2
+
+                ;;
+
+  *)
+
+                clear
+
+                echo "This is not an option"
+
+                sleep 3
+
+                ;;
+
+        esac
+
+done
+
+
+
+####################################### 7.14 #######################################
+
+
+
+x=0
+
+while [ $x = 0 ]
+
+do
+
+        clear
+
+        echo "Do you want to set all user .netrc file  permission as default? (y/n) - Press 'q' to quit."
+
+        read answer
+
+        case "$answer" in
+
+                y)
+
+                echo "You said - yes"
+
+                intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+                if [ -z "$intUserAcc" ]
+
+                then
+
+                        echo "There is no interactive user account."
+
+                        echo ' '
+
+                else
+
+                        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+				  permission="$(ls -al $line | grep .netrc)"
+
+                                if [ -z "$permission" ]
+
+                                then
+
+                                        echo "There is no .netrc file in user directory $line"
+
+                                        echo ' '
+
+                                else
+
+                                        ls -al $line | grep .netrc | while read -r netrc; do
+
+                                                for file in $netrc
+
+                                                do
+
+
+
+ cd $line
+
+
+
+ if [[ $file = *".netrc"* ]]
+
+
+
+ then
+
+
+
+         chmod go-rwx $file
+
+
+
+         echo "User directory $line .netrc file $file permission is set as default"
+
+
+
+ fi
+
+                                                done
+
+                                        done
+
+                                fi
+
+                        done
+
+                fi
+
+                x=1
+
+                ;;
+
+		 n)
+
+                echo "You said -No"
+
+                x=1
+
+                ;;
+
+                q)
+
+                x=1
+
+                echo "Exiting..."
+
+                sleep 2
+
+                ;;
+
+                *)
+
+                clear
+
+                echo "This is not an option"
+
+                sleep 3
+
+                ;;
+
+        esac
+
+done
+
+
+
+
+
+####################################### 7.15 #######################################
+
+
+
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+if [ -z "$intUserAcc" ]
+
+then
+
+        #echo "There is no interactive user account."
+
+        echo ''
+
+else
+
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+                #echo "Checking user home directory $line"
+
+		rhostsfile="$(ls -al $line | grep .rhosts)"
+
+                if  [ -z "$rhostsfile" ]
+
+                then
+
+                        #echo " There is no .rhosts file"
+
+                        echo ''
+
+                else
+
+                        ls -al $line | grep .rhosts | while read -r rhosts; do
+
+                                for file in $rhosts
+
+                                do
+
+                                        if [[ $file = *".rhosts"* ]]
+
+                                        then
+
+                                                #echo " Checking .rhosts file $file"
+
+                                                #check if file created user matches directory user
+
+                                                filecreateduser=$(stat -c %U $line/$file)
+
+                                                if [[ $filecreateduser = *"$line"* ]]
+
+                                                then
+
+#echo -e "${GREEN} $file created user is the same user in the directory${NC}"
+
+
+
+ echo ''
+
+                                                else
+
+
+
+ #echo -e "${RED} $file created user is not the same in the directory. This file should be deleted! ${NC}"
+
+
+
+ echo ''
+
+                                                        cd $line
+
+
+
+ rm $file
+
+                                                fi
+
+                                        fi
+
+                                done
+
+                        done
+
+                fi
+
+        done
+
+fi
+
+
+
+####################################### 7.16 ######################################
+
+
+
+echo "Remediation for 7.16 groups in /etc/passwd"
+
+x=0
+
+while [ $x = 0 ]
+
+do
+
+        clear
+
+	echo "Groups defined in /etc/passwd file but not in /etc/group file will pose a threat to system security since the group permission are not properly managed."
+
+        echo ' '
+
+	echo " For all groups that are already defined in /etc/passwd, do you want to defined them in /etc/group? (y/n) - Press 'q' to quit."
+
+        read answer
+
+        case "$answer" in
+
+                y)
+
+                echo "You said - yes"
+
+                
+
+		for i in $(cut -s -d: -f4 /etc/passwd | sort -u); do
+
+        		grep -q -P "^.*?:x:$i:" /etc/group
+
+        		if [ $? -ne 0 ]
+
+        		then
+
+                		#echo -e "${RED}Group $i is referenced by /etc/passwd but does not exist in /etc/group${NC}"
+
+				groupadd -g $i group$i
+
+			fi
+
+		done
+
+
+
+
+
+                x=1
+
+                ;;
+
+                n)
+
+                echo "You said -No"
+
+                x=1
+
+                ;;
+
+                q)
+
+                x=1
+
+                echo "Exiting..."
+
+                sleep 2
+
+                ;;
+
+                *)
+
+                clear
+
+                echo "This is not an option"
+
+                sleep 3
+
+                ;;
+
+        esac
+
+done
+
+
+
+####################################### 7.17 ######################################
+
+
+
+echo "Remediation for 7.17 users without valid home directories"
+
+x=0
+
+while [ $x = 0 ]
+
+do
+
+        clear
+
+	echo "Users without assigned home directories should be removed or assigned a home directory."
+
+	echo ' '
+
+	echo " For all users without assigned home directories, press 'a' to assign a home directory, 'b' to remove user or 'q' to quit."
+
+        read answer
+
+        case "$answer" in
+
+                a)
+
+                echo "You choose to assign a home directory for all users without an assigned home directory."
+
+                cat /etc/passwd | awk -F: '{ print $1,$3,$6 }' | while read user uid dir; do
+
+                        if [ $uid - ge 500 -a ! -d"$dir" -a $user != "nfsnobody" ]
+
+                        then
+
+				mkhomedir_helper $user
+
+                        fi
+
+                done
+
+                x=1
+
+                ;;
+
+                b)
+
+                echo "You choose to remove all users without an assigned home directory."
+
+		cat /etc/passwd | awk -F: '{ print $1,$3,$6 }' | while read user uid dir; do
+
+			if [ $uid - ge 500 -a ! -d"$dir" -a $user != "nfsnobody" ]
+
+			then
+
+				userdel -r -f $user
+
+			fi
+
+		done
+
+		x=1
+
+                ;;
+
+                q)
+
+                x=1
+
+                echo "Exiting..."
+
+                sleep 2
+
+                ;;
+
+                *)
+
+                clear
+
+                echo "This is not an option"
+
+                sleep 3
+
+                ;;
+
+        esac
+
+done
+
+
+
+echo "Remediation for 7.17 For users without ownership for its home directory"
+
+x=0
+
+while [ $x = 0 ]
+
+do
+
+        clear
+
+        echo "For new users, the home directory on the server is automatically created with BUILTIN\Administrators set as owner. Hence, these users might not have ownership over its home directory."
+
+        echo ' '
+
+        echo " Do you want to set ownership for users without ownership over its home directory? (y/n) -- Press 'q' to quit."
+
+        read answer
+
+        case "$answer" in
+
+                y)
+
+                echo "You have said - yes."
+
+		cat /etc/passwd | awk -F: '{ print $1,$3,$6 }' | while read user uid dir; do
+
+                        if [ $uid -ge 500 -a -d"$dir" -a $user != "nfsnobody" ]
+
+                        then
+
+				sudo chown $user: $dir
+
+                        fi
+
+                done
+
+                x=1
+
+                ;;
+
+                n)
+
+                echo "You have said - no."
+
+                x=1
+
+                ;;
+
+                q)
+
+                x=1
+
+                echo "Exiting..."
+
+                sleep 2
+
+                ;;
+
+                *)
+
+                clear
+
+                echo "This is not an option"
+
+                sleep 3
+
+                ;;
+
+        esac
+
+done
+
 ##########################################################################################
 #9.1 - Check whether Anacron Daemon is enabled or not
 
