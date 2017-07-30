@@ -474,6 +474,690 @@ then
 
 fi
 
+# Start of 6.1.4 coding
+
+echo -e "\e[4m6.1.4 : Create and Set Permissions on rsyslog Log Files\e[0m"
+
+
+
+checkformsgfile=$(ls /var/log/ | grep messages)
+
+if [ -z "$checkformsgfile" ]
+
+then
+
+	printf "\n/var/log/messages : FAILED (/var/log/messages file does not exist)"
+
+	printf "\nFile will now be created"
+
+	touch /var/log/messages
+
+else
+
+	printf "\n/var/log/messages : PASSED (/var/log/messages file exist)"
+
+fi
+
+
+
+checkmsgowngrp=$(ls -l /var/log/messages | awk -F ' ' '{print $3,$4}')
+
+if [ "$checkmsgowngrp" != "root root" ]
+
+then
+
+	#It is configured wrongly
+
+	printf "\n/var/log/messages : FAILED (Owner and Group owner of file is configured wrongly)"
+
+	chown root:root /var/log/messages
+
+	printf "\nOwner and Group owner will now be changed to root root"	
+
+else
+
+	printf "\n/var/log/messages : PASSED (Owner and Group owner of file is configured correctly)"
+
+fi
+
+
+
+checkmsgper=$(ls -l /var/log/messages | awk -F ' ' '{print $1}')
+
+if [ "$checkmsgper" != "-rw-------." ]
+
+then
+
+	printf "\n/var/log/messages : FAILED (Permission of file is configured wrongly)"
+
+	chmod og-rwx /var/log/messages
+
+	printf "\nPermission of file will now be changed to 0600"
+
+else
+
+	printf "\n/var/log/messages : PASSED (Permission of file is configured correctly)"
+
+fi
+
+
+
+printf "\n"
+
+
+
+# kern.log
+
+checkforkernfile=$(ls /var/log/ | grep kern.log)
+
+if [ -z "$checkforkernfile" ]
+
+then
+
+	printf "\n/var/log/kern.log : FAILED (/var/log/kern.log file does not exist)"
+
+	printf "\nFile will now be created"
+
+	touch /var/log/kern.log
+
+else
+
+	printf "\n/var/log/kern.log : PASSED (/var/log/kern.log file exist)"
+
+fi
+
+
+
+checkkernowngrp=$(ls -l /var/log/kern.log | awk -F ' ' '{print $3,$4}')
+
+if [ "$checkkernowngrp" != "root root" ]
+
+then
+
+	#It is configured wrongly
+
+	printf "\n/var/log/kern.log : FAILED (Owner and Group owner of file is configured wrongly)"
+
+	chown root:root /var/log/kern.log
+
+	printf "\nOwner and Group owner will now be changed to root root"	
+
+else
+
+	printf "\n/var/log/kern.log : PASSED (Owner and Group owner of file is configured correctly)"
+
+fi
+
+
+
+checkkernper=$(ls -l /var/log/kern.log | awk -F ' ' '{print $1}')
+
+if [ "$checkkernper" != "-rw-------." ]
+
+then
+
+	printf "\n/var/log/kern.log : FAILED (Permission of file is configured wrongly)"
+
+	chmod og-rwx /var/log/kern.log
+
+	printf "\nPermission of file will now be changed to 0600"
+
+else
+
+	printf "\n/var/log/kern.log : PASSED (Permission of file is configured correctly)"
+
+fi
+
+
+
+printf "\n"
+
+
+
+#daemon.log
+
+checkfordaefile=$(ls /var/log/ | grep daemon.log)
+
+if [ -z "$checkfordaefile" ]
+
+then
+
+	printf "\n/var/log/daemon.log : FAILED (/var/log/daemon.log file does not exist)"
+
+	printf "\nFile will now be created"
+
+	touch /var/log/daemon.log
+
+else
+
+	printf "\n/var/log/daemon.log : PASSED (/var/log/daemon.log file exist)"
+
+fi
+
+
+
+checkdaeowngrp=$(ls -l /var/log/daemon.log | awk -F ' ' '{print $3,$4}')
+
+if [ "$checkdaeowngrp" != "root root" ]
+
+then
+
+	#It is configured wrongly
+
+	printf "\n/var/log/daemon.log : FAILED (Owner and Group owner of file is configured wrongly)"
+
+	chown root:root /var/log/daemon.log
+
+	printf "\nOwner and Group owner will now be changed to root root"	
+
+else
+
+	printf "\n/var/log/daemon.log : PASSED (Owner and Group owner of file is configured correctly)"
+
+fi
+
+
+
+checkdaeper=$(ls -l /var/log/daemon.log | awk -F ' ' '{print $1}')
+
+if [ "$checkdaeper" != "-rw-------." ]
+
+then
+
+	printf "\n/var/log/daemon.log : FAILED (Permission of file is configured wrongly)"
+
+	chmod og-rwx /var/log/daemon.log
+
+	printf "\nPermission of file will now be changed to 0600"
+
+else
+
+	printf "\n/var/log/daemon.log : PASSED (Permission of file is configured correctly)"
+
+fi
+
+
+
+printf "\n"
+
+
+
+#syslog.log
+
+checkforsysfile=$(ls /var/log/ | grep syslog.log)
+
+if [ -z "$checkforsysfile" ]
+
+then
+
+	printf "\n/var/log/syslog.log : FAILED (/var/log/syslog.log file does not exist)"
+
+	printf "\nFile will now be created"
+
+	touch /var/log/syslog.log
+
+else
+
+	printf "\n/var/log/syslog.log : PASSED (/var/log/syslog.log file exist)"
+
+fi
+
+
+
+checksysowngrp=$(ls -l /var/log/syslog.log | awk -F ' ' '{print $3,$4}')
+
+if [ "$checksysowngrp" != "root root" ]
+
+then
+
+	#It is configured wrongly
+
+	printf "\n/var/log/syslog.log : FAILED (Owner and Group owner of file is configured wrongly)"
+
+	chown root:root /var/log/syslog.log
+
+	printf "\nOwner and Group owner will now be changed to root root"	
+
+else
+
+	printf "\n/var/log/syslog.log : PASSED (Owner and Group owner of file is configured correctly)"
+
+fi
+
+
+
+checksysper=$(ls -l /var/log/syslog.log | awk -F ' ' '{print $1}')
+
+if [ "$checksysper" != "-rw-------." ]
+
+then
+
+	printf "\n/var/log/syslog.log : FAILED (Permission of file is configured wrongly)"
+
+	chmod og-rwx /var/log/syslog.log
+
+	printf "\nPermission of file will now be changed to 0600"
+
+else
+
+	printf "\n/var/log/syslog.log : PASSED (Permission of file is configured correctly)"
+
+fi
+
+
+
+printf "\n"
+
+
+
+#unused
+
+checkforunufile=$(ls /var/log/ | grep unused.log)
+
+if [ -z "$checkforunufile" ]
+
+then
+
+	printf "\n/var/log/unused.log : FAILED (/var/log/unused.log file does not exist)"
+
+	printf "\nFile will now be created"
+
+	touch /var/log/unused.log
+
+else
+
+	printf "\n/var/log/unused.log : PASSED (/var/log/unused.log file exist)"
+
+fi
+
+
+
+checkunuowngrp=$(ls -l /var/log/unused.log | awk -F ' ' '{print $3,$4}')
+
+if [ "$checkunuowngrp" != "root root" ]
+
+then
+
+	#It is configured wrongly
+
+	printf "\n/var/log/unused.log : FAILED (Owner and Group owner of file is configured wrongly)"
+
+	chown root:root /var/log/unused.log
+
+	printf "\nOwner and Group owner will now be changed to root root"	
+
+else
+
+	printf "\n/var/log/unused.log : PASSED (Owner and Group owner of file is configured correctly)"
+
+fi
+
+
+
+checkunuper=$(ls -l /var/log/unused.log | awk -F ' ' '{print $1}')
+
+if [ "$checkunuper" != "-rw-------." ]
+
+then
+
+	printf "\n/var/log/unused.log : FAILED (Permission of file is configured wrongly)"
+
+	chmod og-rwx /var/log/unused.log
+
+	printf "\nPermission of file will now be changed to 0600"
+
+else
+
+	printf "\n/var/log/unused.log : PASSED (Permission of file is configured correctly)"
+
+fi
+
+
+
+printf "\n"
+
+# End of 6.1.4 coding
+
+
+
+# To have space
+
+printf "\n\n"
+
+
+
+# Start of 6.1.5 coding
+
+echo -e "\e[4m6.1.5 : Configure rsyslogto Send Logs to a Remote Log Host\e[0m\n"
+
+checkloghost=$(grep "^*.*[^|][^|]*@" /etc/rsyslog.conf)
+
+if [ -z "$checkloghost" ]  # If there is no log host
+
+then
+
+	printf "Remote Log Host : FAILED (Remote log host has not been configured)\n"
+
+	printf "\nRemote log host will now be configured"
+
+	printf "\n*.* @@logfile.example.com\n" >> /etc/rsyslog.conf
+
+	
+
+else
+
+	printf "Remote Log Host : PASSED (Remote log host has been configured)\n"
+
+fi
+
+# End of 6.1.5 coding
+
+
+
+# Start of 6.1.6 coding
+
+printf "\n\n"
+
+
+
+echo -e "\e[4m6.1.6 : Accept Remote rsyslog Messages Only on Designated Log Hosts\e[0m"
+
+checkmodload=$(grep '^$ModLoad imtcp.so' /etc/rsyslog.conf)
+
+checkinput=$(grep '^$InputTCPServerRun' /etc/rsyslog.conf)
+
+if [ -z "$checkmodload" ]
+
+then
+
+	# If the thing has been commented out
+
+	printf "\nModLoad imtcp.so : FAILED (ModLoad imtcp is not configured)"
+
+	printf "\n\$ModLoad imtcp.so" >> /etc/rsyslog.conf
+
+	printf "\nModLoad imtcp will now be configured\n"
+
+else
+
+	#If the string has not been commented out
+
+	printf "\nModLoad imtcp : PASSED (ModLoad imtcp is configured)\n"
+
+fi
+
+
+
+
+
+if [ -z "$checkinput" ]
+
+then
+
+	# If the string has been commented ouit
+
+    printf "\nInputTCPServerRun : FAILED (InputTCPServerRun is not configured)"
+
+	printf "\n\$InputTCPServerRun 514" >> /etc/rsyslog.conf
+
+    printf "\nInputTCPServerRun wil now be configured\n"
+
+else
+
+    #If the string has not been commented out
+
+    printf "\nInputTCPServerRun : PASSED (InputTCPServerRun is configured)\n"
+
+fi
+
+# End of 6.1.6 coding
+
+
+
+# To have space
+
+printf "\n\n"
+
+
+
+printf "============================================================================\n"
+
+printf "6.2 : Configure System Accounting\n"
+
+printf "============================================================================\n"
+
+printf "\n"
+
+echo "----------------------------------------------------------------------------"
+
+printf "6.2.1 : Configure Data Retention\n"
+
+echo "----------------------------------------------------------------------------"
+
+printf "\n"
+
+
+
+#start of 6.2.1.1 coding
+
+echo -e "\e[4m6.2.1.1 : Configure Audit Log Storage Size\e[0m\n"
+
+checkvalue=$(grep -w "max_log_file" /etc/audit/auditd.conf | awk -F ' ' '{print $3}')
+
+if [ "$checkvalue" != "5" ]
+
+then
+
+	printf "Audit Log Storage Size : FAILED (Maximum size of audit log file is configured incorrectly)\n"
+
+	sed -i /$checkvalue/d /etc/audit/auditd.conf
+
+	printf "max_log_file = 5" >> /etc/audit/auditd.conf
+
+	printf "Audit log storage size value will now be configured\n"
+
+else
+
+	printf "Audit Log Storage Size : PASSED (Maximum size of audit log file is configured correctly)\n"
+
+fi
+
+
+
+printf "\n\n"
+
+#end of 6.2.1.1 coding
+
+
+
+
+
+#start of 6.2.1.2 coding
+
+echo -e "\e[4m6.2.1.2 : Keep All Auditing Information\e[0m\n"
+
+checkvalue2=$(grep -w "max_log_file_action" /etc/audit/auditd.conf | awk -F ' ' '{print $3}')
+
+if [ "$checkvalue2" != "keep_logs" ]
+
+then
+
+	printf "Audit Information : FAILED (All audit logs are not retained)\n"
+
+    sed -i /$checkvalue2/d /etc/audit/auditd.conf
+
+    printf "\nmax_log_file_action = keep_logs" >> /etc/audit/auditd.conf
+
+    printf "All audit log files will now be retained\n"
+
+else
+
+    printf "Audit Information: PASSED (Audit logs are retained)\n"
+
+fi
+
+
+
+printf "\n\n"
+
+#End of 6.2.1.2 coding
+
+
+
+
+
+#Start of 6.2.1.3 coding
+
+echo -e "\e[4m6.2.1.3 : Disable System on Audit Log Full\e[0m\n"
+
+checkvalue3=$(grep -w "space_left_action" /etc/audit/auditd.conf | awk -F ' ' '{print $3}')
+
+if [ "$checkvalue3" != "email" ]
+
+then
+
+	printf "Action : FAILED (Action to take on low disk space is configured incorrectly)\n"
+
+    sed -i /$checkvalue3/d /etc/audit/auditd.conf
+
+    printf "\nspace_left_action = email" >> /etc/audit/auditd.conf
+
+    printf "Action to take on low disk space will now be configured\n"
+
+else
+
+    printf "Action : PASSED (Action to take on low disk space is configured correctly)\n"
+
+fi
+
+
+
+printf "\n"
+
+
+
+checkvalue4=$(grep -w "action_mail_acct" /etc/audit/auditd.conf | awk -F ' ' '{print $3}')
+
+if [ "$checkvalue4" != "root" ]
+
+then
+
+	printf "Email Account : FAILED (Email account specified for warnings to be sent to is configured incorrectly)\n"
+
+    sed -i /$checkvalue4/d /etc/audit/auditd.conf
+
+    printf "\naction_mail_acct = root" >> /etc/audit/auditd.conf
+
+    printf "Email account specified for warnings to be sent to will now be configured\n"
+
+else
+
+    printf "Email Account : PASSED (Email account specified for warnings to be sent to is configured correctly)\n"
+
+fi
+
+
+
+printf "\n"
+
+
+
+checkvalue5=$(grep -w "admin_space_left_action" /etc/audit/auditd.conf | awk -F ' ' '{print $3}')
+
+if [ "$checkvalue5" != "halt" ]
+
+then
+
+	printf "Admin Action : FAILED (Admin action to take on low disk space is configured incorrectly)\n"
+
+    sed -i /$checkvalue5/d /etc/audit/auditd.conf
+
+    printf "\nadmin_space_left_action = halt" >> /etc/audit/auditd.conf
+
+    printf "Admin action to take on low disk space will now be configured\n"
+
+else
+
+    printf "Admin Action : PASSED (Admin action to take on low disk space is configured correctly)\n"
+
+fi
+
+
+
+printf "\n\n"
+
+#End of 6.2.1.3 coding
+
+
+
+#Start of 6.2.1.4 coding
+
+echo -e "\e[4m6.2.1.4 : Enable auditd Service\e[0m\n"
+
+checkauditdservice=`systemctl is-enabled auditd`
+
+if [ "$checkauditdservice" == enabled ]
+
+then
+
+	echo "Auditd Service : PASSED (Auditd is enabled)"
+
+
+
+else
+
+	echo "Auditd Service : FAILED (Auditd is not enabled)"
+
+	systemctl enable auditd
+
+	echo "Auditd Service is now enabled"
+
+fi
+
+#End of 6.2.1.4 coding
+
+
+
+printf "\n\n"
+
+
+
+#Start of 6.2.1.5 coding
+
+echo -e "\e[4m6.2.1.5 : Enable Auditing for Processes That Start Prior to auditd\e[0m\n"
+
+checkgrub=$(grep "linux" /boot/grub2/grub.cfg | grep "audit=1") 
+
+if [ -z "$checkgrub" ]
+
+then
+
+	printf "System Log Processes : FAILED (System is not configured to log processes that start prior to auditd\n"
+
+	var="GRUB_CMDLINE_LINUX"
+
+	sed -i /$var/d /etc/default/grub
+
+	printf "GRUB_CMDLINE_LINUX=\"audit=1\"" >> /etc/default/grub
+
+	printf "System will now be configured to log processes that start prior to auditd\n"
+
+	grub2-mkconfig -o /boot/grub2/grub.cfg &> /dev/null
+
+else
+
+	printf "System Log Processes : PASSED (System is configured to log processes that start prior to auditd\n"
+
+fi
+
+
+
+#End of 6.2.1.5 coding
+
+
+
+printf "\n\n"
+
 ##########################################################################################
 #start of 6.2.1.6 coding
 
