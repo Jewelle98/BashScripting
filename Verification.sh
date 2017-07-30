@@ -1539,6 +1539,214 @@ fi
 
 printf "\n\n"
 
+#7.7
+printf "\n"
+echo -e "\e[4m7.$count Lock Inactive User Accounts\e[0m\n"
+
+current=$(useradd -D | grep INACTIVE | awk -F= '{print $2}')
+
+if [ "${current}" -le 30 ] && [ "${current}" -gt 0 ]
+then
+        echo "Result: PASSED! (Configured user accounts to be locked for 35 or more days)"
+		((count++))
+else
+		echo "Current number of days set = $current"
+        echo "Result: FAILED! (Did not configure user accounts to be locked for 35 or more days)"
+		((count++))
+fi
+#7.8
+printf "\n"
+echo -e "\e[4m7.$count Ensure Password Fields Are Not Empty\e[0m\n"
+
+current=$(cat /etc/shadow | awk -F: '($2 == "") { print $1 }')
+
+if [ "$current" = "" ];then
+	echo "Result: PASSED! (All users have password)"
+	((count++))
+	#accounts that were newly created without passwords are locked by default, their second field are "!!" thus, not empty
+else
+	echo "Accounts with no passwords : $current"
+    echo "Result: FAILED! (Not all users have password)"
+	((count++))
+fi
+#7.9
+printf "\n"
+echo -e "\e[4m7.$count Verify No Legacy \"+\" Entries Exist in /etc/passwd, /etc/shadow and /etc/group files\e[0m\n"
+
+passwd=$(grep '^+:' /etc/passwd) 
+shadow=$(grep '^+:' /etc/shadow)
+group=$(grep '^+:' /etc/group)
+
+if [ -z "$passwd" -a -z "$shadow" -a -z "$group" ];then
+	echo "Result: PASSED! (No legacy + Entries in all 3 files)"
+	((count++))
+elif [ -n "$passwd" -a -z "$shadow" -a -z "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/passwd)"
+	((count++))
+elif [ -n "$passwd" -a -n "$shadow" -a -z "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/passwd & /etc/shadow)"
+	((count++))
+elif [ -n "$passwd" -a -z "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/passwd & /etc/group)"
+	((count++))
+elif [ -z "$passwd" -a -n "$shadow" -a -z "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/shadow)"
+	((count++))
+elif [ -z "$passwd" -a -n "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/shadow & /etc/group)"
+	((count++))
+elif [ -z "$passwd" -a -n "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/shadow & /etc/group)"
+	((count++))
+elif [ -z "$passwd" -a -z "$shadow" -a -n "$group" ];then
+	echo "Result: FAILED! (Legacy + Entries in /etc/group)"
+	((count++))
+else
+	echo "Result: FAILED! (Legacy + Entries present in all 3 files)"
+	((count++))
+fi
+#7.10
+printf "\n"
+echo -e "\e[4m7.$count Verify No UID 0 Accounts Exist Other Than Root\e[0m\n"
+
+current=$(/bin/cat /etc/passwd | /bin/awk -F: '($3 ==0) { print $1 }')
+
+if [ "$current" = "root" ];then
+	echo "Result: PASSED! (No other user has a UID of 0)"
+	((count++))
+else
+	echo "Result: FAILED! (Another user has a UID of 0)"
+	((count++))
+fi
+printf "\n"
+
+#7.11 Ensure root PATH Integrity
+echo "7.11 Ensure root PATH Integrity"
+
+check=0
+
+#Check for Empty Directory in PATH (::)
+if [ "`echo $PATH | grep ::`" != "" ]
+then
+	#echo "Empty Directory in PATH (::)"
+	((check++))
+fi
+
+#Check for Trailing : in PATH
+if [ "`echo $PATH | grep :$`" != "" ]
+then
+	#echo "Trailing : in PATH"
+	((check++))
+fi
+
+p=`echo $PATH | sed -e 's/::/:/' -e 's/:$//' -e 's/:/ /g'`
+set -- $p
+while [ "$1" != "" ]
+do
+	#Check if PATH contains .
+        if [ "$1" = "." ]
+        then
+		#echo "PATH contains ."
+		((check++))
+		shift
+		continue
+        fi
+	
+	#Check if PATH entry is a directory
+        if [ -d $1 ]
+        then
+                dirperm=`ls -ldH $1 | cut -f1 -d" "`
+                #Check if Group Write permission is set on directory
+		if [ `echo $dirperm | cut -c6` != "-" ]
+                then
+			#echo "Group Write permission set on directory $1"
+			((check++))
+                fi
+		#Check if Other Write permission is set on directory
+                if [ `echo $dirperm | cut -c9` != "-" ]
+		then
+			#echo "Other Write permission set on directory $1"
+			((check++))
+                fi
+		
+		#Check if PATH entry is owned by root
+                dirown=`ls -ldH $1 | awk '{print $3}'`
+                if [ "$dirown" != "root" ]
+                then
+                       #echo $1 is not owned by root
+			((check++))
+                fi
+        else
+		#echo $1 is not a directory
+		((check++))
+        fi
+	shift
+done
+
+#echo ${check}
+if [ ${check} == 0 ]
+then
+	echo "Audit status: PASSED!"
+elif [ ${check} != 0 ]
+then
+	echo "Audit status: FAILED!"
+else
+	echo "FATAL ERROR. PLEASE CONTACT YOUR SYSTEM ADMINISTRATOR!"
+fi
+
+#7.12
+
+echo "------------------------------------------------------------------------------------------"
+echo ' '
+echo "${bold}7.12 Check Permissions on User Home Directories${normal}"
+echo ' '
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+if [ -z "$intUserAcc" ]
+then
+        echo "There is no interactive user account."
+        echo ' '
+else
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+                echo "Checking user home directory $line"
+                permission="$(ls -ld $line)"
+                echo " Permission is ${permission:0:10}"
+                ## check 6th field ##
+                if [ ${permission:5:1} == *"w"* ]
+                then
+                        echo -e "${RED} 6th field of permission is w ${NC}"
+                else
+                        echo -e "${GREEN} 6th field of permission is '-' ${NC}"
+                fi
+
+                ## check 8th field ##
+                if [ ${permission:7:1} == "-" ]
+                then
+                        echo -e "${GREEN} 8th field of permission is '-' ${NC}"
+                else
+                        echo -e "${RED} 8th field of permission is not '-' ${NC}"
+ fi
+
+                ## check 9th field ##
+                if [ ${permission:8:1} == "-" ]
+                then
+                        echo -e "${GREEN} 9th field of permission is '-' ${NC}"
+                else
+                        echo -e "${RED} 9th field of permission is not '-' ${NC}"
+                fi
+
+                ## check 10th field ##
+                if [ ${permission:9:1} == "-" ]
+                then
+                        echo -e "${GREEN} 10th field of permission is '-' ${NC}"
+                else
+                        echo -e "${RED} 10th field of permission is not '-' ${NC}"
+                fi
+                echo " "
+        done
+fi
+
 echo "------------------------------------------------------------------------------------------"
 
 echo ' '
