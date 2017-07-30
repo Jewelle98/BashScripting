@@ -673,6 +673,95 @@ pkill -P 1 -HUP auditd
 printf "\n\n"
 
 ##########################################################################################
+#7.1
+
+echo -e "\e[4m7.1 : Set Password Expiration Days\e[0m\n"
+current=$(cat /etc/login.defs | grep "^PASS_MAX_DAYS" | awk '{ print $2 }')
+standard=90 #change this value according to the enterprise's required standard
+
+if [ ! $current = $standard ]; then
+	sed -i "s/^PASS_MAX_DAYS.*99999/PASS_MAX_DAYS $standard/" /etc/login.defs | grep "^PASS_MAX_DAYS.*$standard"
+	printf "\n"
+	echo "Password Expiration Days have been set"
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#7.2
+
+echo -e "\e[4m7.2 : Set Password Change Minimum Number of Days\e[0m\n"
+current=$(cat /etc/login.defs | grep "^PASS_MIN_DAYS" | awk '{ print $2 }')
+standard=7 #change this value according to the enterprise's required standard
+if [ ! $current = $standard ]; then
+	sed -i "s/^PASS_MIN_DAYS.*0/PASS_MIN_DAYS $standard/" /etc/login.defs | grep "^PASS_MIN_DAYS.*$standard"
+	printf "\n"
+	echo "Password Change Minimum Days have been set"
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#7.3
+
+echo -e "\e[4m7.3 : Set Password Expiring Warning Days\e[0m\n"
+current=$(cat /etc/login.defs | grep "^PASS_WARN_AGE" | awk '{ print $2 }')
+standard=7 #change this value according to the enterprise's required standard
+if [ ! $current = $standard ]; then
+	sed -i "s/^PASS_WARN_AGE.*0/PASS_WARN_AGE $standard/" /etc/login.defs | grep "^PASS_WARN_AGE.*$standard"
+	printf "\n"
+	echo "Password Expiring Warning Days have been set"
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#7.4
+
+echo -e "\e[4m7.4 : Disable System Accounts\e[0m\n"
+for user in `awk -F: '($3 < 1000) { print $1 }' /etc/passwd` ; do 
+	if [ $user != "root" ]; then 
+		usermod -L $user &> /dev/null 
+		if [ $user != "sync" ] && [ $user != "shutdown" ] && [ $user != "halt" ]; then
+			usermod -s /sbin/nologin $user &> /dev/null
+			fi 
+		fi 
+	done
+printf "\n"
+echo "System Accounts has been disabled"
+
+printf "\n\n"
+
+##########################################################################################
+#7.5
+
+echo -e "\e[4m7.5 : Set Default Group for root Account\e[0m\n"
+current=$(grep "^root:" /etc/passwd | cut -f4 -d:)
+  
+if [ "$current" != 0 ]; then
+    usermod -g 0 root
+	printf "\n"
+    echo "Default Group for root Account is modified successfully"
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#7.6
+
+echo -e "\e[4m7.6 : Set Default umask for Users\e[0m\n"
+remedy=$(egrep -h "\s+umask ([0-7]{3})" /etc/bashrc /etc/profile | awk '{ print $2 }')
+
+if [ "$remedy" != 077 ];then 
+	sed -i 's/022/077/g' /etc/profile /etc/bashrc
+	sed -i 's/002/077/g' /etc/profile /etc/bashrc
+	printf "\n"
+	echo "Default umask has been set for Users"
+fi
+
+printf "\n\n"
+
+##########################################################################################
 
 #read -n 1 -s -r -p "Press any key to exit!"
 #kill -9 $PPID
