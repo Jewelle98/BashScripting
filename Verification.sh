@@ -1344,7 +1344,419 @@ fi
 
 printf "\n\n"
 
-#!/bin/bash
+echo "------------------------------------------------------------------------------------------"
+
+echo ' '
+
+echo "${bold}7.13 Check User Dot File Permissions${normal}"
+
+echo ' '
+
+
+
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+
+
+if [ -z "$intUserAcc" ]
+
+then
+
+        echo "There is no interactive user account."
+
+        echo ' '
+
+else
+
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+
+
+                echo "Checking hidden files in user home directory $line"
+
+                cd $line
+
+                hiddenfiles="$(echo .*)"
+
+
+
+                if [ -z "$hiddenfiles" ]
+
+                then
+
+echo " There is no hidden files"
+
+                else
+
+                        for file in ${hiddenfiles[*]}
+
+                        do
+
+                                permission="$(stat -c %A $file)"
+
+                                echo " Checking hidden file $file"
+
+                                echo "  Permission is $permission"
+
+
+
+                                ## check 6th field ##
+
+                                if [ ${permission:5:1} == *"w"* ]
+
+                                then
+
+                                        echo -e " ${RED} 6th field of permission is 'w' ${NC}"
+
+                                else
+
+                                        echo -e " ${GREEN} 6th field of permission is not 'w' ${NC}"
+
+                                fi
+
+
+
+                                ## check 9th field ##
+
+                                if [ ${permission:8:1} == *"w"* ]
+
+                                then
+
+                                        echo -e " ${RED} 9th field of permission is 'w' ${NC}"
+
+                                else
+
+                                        echo -e " ${GREEN} 9th field of permission is not 'w' ${NC}"
+
+                                fi
+
+ echo ' '
+
+                        done
+
+                fi
+
+        done
+
+fi
+
+
+
+####################################### 7.14 #######################################
+
+
+
+echo "------------------------------------------------------------------------------------------"
+
+echo ' '
+
+echo "${bold}7.14 Check Existence of and Permissions on User .netrc Files${normal}"
+
+echo ' '
+
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+
+
+if [ -z "$intUserAcc" ]
+
+then
+
+        echo " There is no interactive user account."
+
+        echo ' '
+
+else
+
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+ echo "Checking user home directory $line"
+
+                permission="$(ls -al $line | grep .netrc)"
+
+                if  [ -z "$permission" ]
+
+                then
+
+                        echo " There is no .netrc file"
+
+                        echo ' '
+
+                else
+
+                        ls -al $line | grep .netrc | while read -r netrc; do
+
+                                echo " $netrc"
+
+
+
+                                ## check 5th field ##
+
+                                if [ ${netrc:4:6} == "------" ]
+
+                                then
+
+                                        echo -e " ${GREEN} 5th-10th field of permission is '------' ${NC}"
+
+                                else
+
+                                        echo -e " ${RED} 5th-10th field of permission is not '------' ${NC}"
+
+                                fi
+
+
+
+                                echo ' '
+
+                        done
+
+                fi
+
+        done
+
+fi
+
+
+
+#################################### 7.15 ####################################
+
+
+
+echo "------------------------------------------------------------------------------------------"
+
+echo ' '
+
+echo "${bold}7.15 Check for Presence of User .rhosts Files${normal}"
+
+echo ' '
+
+
+
+intUserAcc="$(/bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }')"
+
+
+
+if [ -z "$intUserAcc" ]
+
+then
+
+        echo "There is no interactive user account."
+
+        echo ' '
+
+else
+
+        /bin/cat /etc/passwd | /bin/egrep -v '(root|halt|sync|shutdown)' | /bin/awk -F: '($7 != "/sbin/nologin"){ print $6 }' | while read -r line; do
+
+                echo "Checking user home directory $line"
+
+                rhostsfile="$(ls -al $line | grep .rhosts)"
+
+
+
+ if  [ -z "$rhostsfile" ]
+
+                then
+
+                        echo " There is no .rhosts file"
+
+                        echo ' '
+
+                else
+
+                        ls -al $line | grep .rhosts | while read -r rhosts; do
+
+                                for file in $rhosts
+
+                                do
+
+                                        if [[ $file = *".rhosts"* ]]
+
+                                        then
+
+                                                echo " Checking .rhosts file $file"
+
+                                                #check if file created user matches directory user
+
+                                                filecreateduser=$(stat -c %U $line/$file)
+
+                                                if [[ $filecreateduser = *"$line"* ]]
+
+                                                then
+
+                                                       echo -e "${GREEN} $file created user is the same user in the directory${NC}"
+
+
+
+ echo ' '
+
+                                                else
+
+                                                        echo -e "${RED} $file created user is not the same in the directory. This file should be deleted! ${NC}"
+
+
+
+ echo ' '
+
+                                                fi
+
+                                        fi
+
+                                done                    
+
+                        done
+
+                fi
+
+        done
+
+fi
+
+
+
+echo "------------------------------------------------------------------------------------------"
+
+
+
+####################################### 7.16 ######################################
+
+
+
+echo "------------------------------------------------------------------------------------------"
+
+echo ' '
+
+echo "${bold}7.16 Check Groups in /etc/passwd${normal}"
+
+echo ' '
+
+
+
+for i in $(cut -s -d: -f4 /etc/passwd | sort -u); do
+
+	grep -q -P "^.*?:x:$i:" /etc/group
+
+	if [ $? -ne 0 ]
+
+	then
+
+		echo -e "${RED}Group $i is referenced by /etc/passwd but does not exist in /etc/group${NC}"
+
+	else
+
+		echo -e "${GREEN}Group $i is referenced by /etc/passwd and exist in /etc/group${NC}"
+
+	fi
+
+done
+
+
+
+####################################### 7.17 ######################################
+
+
+
+echo "------------------------------------------------------------------------------------------"
+
+echo ' '
+
+echo "${bold}7.17 Check That Users Are Assigned Valid Home Directories && Home Directory Ownership is Correct${normal}"
+
+echo ' '
+
+
+
+cat /etc/passwd | awk -F: '{ print $1,$3,$6 }' | while read user uid dir; do
+
+
+
+	#checking validity of  user assigned home directories
+
+	if [ $uid -ge 500 -a ! -d"$dir" -a $user != "nfsnobody" ]
+
+	then
+
+		echo -e "${RED}The home directory $dir of user $user does not exist.${NC}"
+
+		
+
+	else
+
+		echo -e "${GREEN}The home directory $dir of user $user exist.${NC}"
+
+	fi
+
+
+
+	#checking user home directory ownership
+
+	if [ $uid -ge 500 -a -d"$dir" -a $user != "nfsnobody" ]
+
+	then
+
+		owner=$(stat -L -c "%U" "$dir")
+
+		if [ "$owner" != "$user" ]
+
+		then
+
+			echo -e "${RED}The home directory ($dir) of user $user is owned by $owner.${NC}"
+
+		else
+
+
+
+			echo -e "${GREEN}Then home directory ($dir) of user $user is owned by $owner.${NC}"
+
+		fi
+
+	fi
+
+		
+
+	
+
+done
+
+
+
+####################################### 7.18 ######################################
+
+
+
+echo "------------------------------------------------------------------------------------------"
+
+echo ' '
+
+echo "${bold}7.18 Check for Duplicate UIDs ${normal}"
+
+echo ' ' 
+
+
+
+/bin/cat /etc/passwd | /bin/cut -f3 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x; do
+
+	[ -z "${x}" ] && break
+
+	set - $x
+
+	if [ $1 -gt 1 ]
+
+	then
+
+		users=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2 /etc/passwd | /user/bin/xargs`
+
+		echo -e "${RED}Duplicate UID $2: ${users}${NC}"
+
+	else
+
+		echo -e "${GREEN}There is no duplicate UID $2 ${NC}" 
+
+	fi
+
+
+
+done
 
 ##########################################################################################
 #9.1 - Check whether Anacron Daemon is enabled or not
