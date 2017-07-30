@@ -3740,6 +3740,140 @@ do
 
 done
 
+# 7.23 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m8.2 Remediation : Check for presence od user .forward files\e[0m/n"
+
+
+
+
+
+for dir in `/bin/cat /etc/passwd | /bin/awk -F: '{ print $6 }'`; do
+
+if [ ! -h "$dir/.forward" -a -f "$dir/.forward" ]; then
+
+	chmod u=rw- $dir/.forward
+
+	chmod g=--- $dir/.forward
+
+	chmod o=--- $dir/.forward
+
+	echo "Remediation performed for presence of $dir/.forward file."
+
+	echo "$dir/.forward can only be read and written by the owner only now."
+
+fi
+
+done
+
+
+
+===============================================================================
+
+
+
+# 8.1 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m8.1 Remediation :Set Warning Banner for Standard Login Services\e[0m\n"
+
+
+
+current=$(cat /etc/motd)
+
+
+
+standard="WARNING: UNAUTHORIZED USERS WILL BE PROSECUTED!"
+
+
+
+if [ "$current" == "$standard" ]; then
+
+        echo "Audit status: PASSED!"
+
+else
+
+         echo "Authorized uses only. All activity may be \ monitored and reported." > /etc/issue
+
+         echo "Authorized uses only. All activity may be \ monitored and reported." > /etc/issue.net
+
+         for file in /etc/motd /etc/issue /etc/issue.net
+
+         do
+
+            chown root:root $file
+
+            chmod 644 $file
+
+         done
+
+fi
+
+
+
+=======================================================================================
+
+
+
+# 8.2 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m8.2 Remediation : Remove OS Information from Login Warning Banners\e[0m/n"
+
+
+
+current1=$(egrep '(\\v|\\r|\\m|\\s)' /etc/issue)
+
+current2=$(egrep '(\\v|\\r|\\m|\\s)' /etc/motd)
+
+current3=$(egrep  '(\\v|\\r|\\m|\\s)' /etc/issue.net)
+
+
+
+string1="\\v"
+
+string2="\\r"
+
+string3="\\m"
+
+string4="\\s"
+
+
+
+if [[ $current1 =~ $string1 || $current1 =~ $string2 || $current1 =~ $string3 || $current1 =~ $string4 ]]; then
+
+        sed -i.bak '/\\v\|\\r\|\\m\|\\s/d' /etc/issue
+
+fi
+
+
+
+if [[ $current2 =~ $string1 || $current2 =~ $string2 || $current2 =~ $string3 || $current2 =~ $string4 ]]; then
+
+        sed -i.bak '/\\v\|\\r\|\\m\|\\s/d' /etc/motd
+
+fi
+
+
+
+
+
+if [[ $current3 =~ $string1 || $current3 =~ $string2 || $current3 =~ $string3 || $current4 =~ $string4 ]]; then
+
+        sed -i.bak '/\\v\|\\r\|\\m\|\\s/d' /etc/issue.net
+
+fi
+
 ##########################################################################################
 #9.1 - Check whether Anacron Daemon is enabled or not
 
