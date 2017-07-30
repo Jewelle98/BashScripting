@@ -4487,6 +4487,344 @@ then
 fi
 printf "\n"
 
+# 10.7 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.7 Remediation : Set SSH HostbasedAuthentication to No\e[0m\n"
+
+
+
+hostbasedauthentication=`grep "^HostbasedAuthentication" /etc/ssh/sshd_config`
+
+if [ "$hostbasedauthentication" != "HostbasedAuthentication no" ]
+
+then
+
+        printf "Configuring SSH HostbasedAuthentication.../n"
+
+        sed -ie "68d" /etc/ssh/sshd_config
+
+        sed -ie "68iHostbasedAuthentication no" /etc/ssh/sshd_config
+
+        printf "Settings has been configured : SUCCESSFUL\n\n"
+
+else
+
+        printf "SSH HostbasedAuthentication has already been configured correctly\n\n"
+
+fi
+
+
+
+======================================================================================
+
+# 10.8 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.8 Verification : Disable SSH Root Login\e[0m\n"
+
+
+
+remsshrootlogin=`grep "^PermitRootLogin" /etc/ssh/sshd_config`
+
+if [ "$remsshrootlogin" != "PermitRootLogin no" ]
+
+then
+
+        printf "Configuring settings...\n"
+
+        sed -ie "48d" /etc/ssh/sshd_config
+
+        sed -ie "48iPermitRootLogin no" /etc/ssh/sshd_config
+
+        printf "Settings has been configured : SUCCESSFUL\n\n"
+
+else
+
+        printf "Settings has already been configured correctly!\n\n"
+
+fi
+
+
+
+=====================================================================================
+
+
+
+# 10.9 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.9 Remediation : Set SSH PermitEmptyPasswords to No\e[0m\n"
+
+
+
+remsshemptypswd=`grep "^PermitEmptyPasswords" /etc/ssh/sshd_config`
+
+if [ "$remsshemptypswd" != "PermitEmptyPasswords no" ]
+
+then
+
+        printf "Configuring settings...\n"
+
+        sed -ie "77d" /etc/ssh/sshd_config
+
+        sed -ie "77iPermitEmptyPasswords no" /etc/ssh/sshd_config
+
+        printf "Settings has been configured : SUCCESSFUL\n\n"
+
+else
+
+        printf "Seeitngs is already configured correctly\n\n"
+
+fi
+
+
+
+
+
+===================================================================================
+
+
+
+# 10.10 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.10 Remediation : Use Only Approved Ciphers in Counter Mode\e[0m"
+
+
+
+remsshcipher=`grep "^Ciphers" /etc/ssh/sshd_config`
+
+
+
+if [ "$remsshcipher" != "Ciphers aes128-ctr,aes192-ctr,aes256-ctr" ]
+
+then
+
+        printf "Configuring settings...\n"
+
+        sed -ie "36d" /etc/ssh/sshd_config
+
+        sed -ie "36iCiphers aes128-ctr,aes192-ctr,aes256-ctr" /etc/ssh/sshd_config
+
+        printf "Settings have been configured correctly : SUCCESSFUL\n\n"
+
+else
+
+        printf "Approved Cipher are already in Counter Mode\n\n"
+
+fi
+
+
+
+==========================================================================================
+
+
+
+# 10.11 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.11 Remediation : Use Idle Timeout Interval for User Login\e[0m\n"
+
+
+
+remsshcai=`grep "^ClientAliveInterval" /etc/ssh/sshd_config`
+
+remsshcacm=`grep "^ClientAliveCountMax" /etc/ssh/sshd_config`
+
+
+
+if [ "$remsshcai" != "ClientAliveInterval 300" ]
+
+then
+
+        printf "Configuring settings...\n"
+
+        sed -ie "127d" /etc/ssh/sshd_config
+
+        sed -ie "127iClientAliveInterval 300" /etc/ssh/sshd_config
+
+        printf "ClientAliveInterval has been congfigured correctly : SUCCESSFUL\n\n"
+
+else
+
+        printf "ClientALiveInterval is already configured correctly.\n\n"
+
+fi
+
+
+
+if [ "$remsshcacm" != "ClientAliveCountMax 0" ]
+
+then
+
+        printf "Configuring settings...\n"
+
+        sed -ie "128d" /etc/ssh/sshd_config
+
+        sed -ie "128iClientAliveCountMax 0" /etc/ssh/sshd_config
+
+        printf "ClientAliveCountMax has been congfigured correctly : SUCCESSFUL\n\n"
+
+else
+
+        printf "ClientALiveCountMax is already configured correctly.\n\n"
+
+
+
+fi
+
+===================================================================================
+
+
+
+# 10.12 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.12 Verification : Limit Access Via SSH\e[0m\n"
+
+
+
+remsshalwusrs=`grep "^AllowUsers" /etc/ssh/sshd_config`
+
+remsshalwgrps=`grep "^AllowGroups" /etc/ssh/sshd_config`
+
+remsshdnyusrs=`grep "^DenyUsers" /etc/ssh/sshd_config`
+
+remsshdnygrps=`grep "^DenyGroups" /etc/ssh/sshd_config`
+
+
+
+if [ -z "$remsshalwusrs" -o "$remsshalwusrs" == "AllowUsers[[:space:]]" ]
+
+then
+
+        printf "Configuring AllowUsers settings...\n"
+
+        printf "\nAllowUsers User3" >> /etc/ssh/sshd_config
+
+        printf "Setting has been configured : SUCCESSFUL\n\n"
+
+else
+
+        printf "Setting 'AllowUsers' has already been configured\n\n"
+
+fi
+
+
+
+if [ -z "$remsshalwgrps" -o "$remsshalwgrps" == "AllowUsers[[:space:]]" ]
+
+then
+
+        printf "Configuring AllowGroups settings...\n"
+
+        printf "\nAllowGroups grp2" >> /etc/ssh/sshd_config
+
+        printf "Setting has been configured : SUCCESSFUL\n\n"
+
+else
+
+        printf "Setting 'AllowGroups' has already been configured\n\n"
+
+fi
+
+
+
+if [ -z "$remsshdnyusrs" -o "$remsshdnyusrs" == "AllowUsers[[:space:]]" ]
+
+then
+
+        printf "Configuring AllowGroups settings...\n"
+
+        printf "\nDenyUsers user2" >> /etc/ssh/sshd_config
+
+        printf "Setting has been configured : SUCCESSFUL\n\n"
+
+else
+
+        printf "Setting 'DenyUsers' has already been configured\n\n"
+
+fi
+
+
+
+if [ -z "$remsshdnygrps" -o "$remsshdnygrps" == "AllowUsers[[:space:]]" ]
+
+then
+
+        printf "Configuring DenyGroups settings...\n"
+
+        printf "\nDenyGroups grp3" >> /etc/ssh/sshd_config
+
+        printf "Setting has been configured : SUCCESSFUL\n\n"
+
+else
+
+        printf "Setting 'DenyGroups' has already been configured\n\n"
+
+
+
+fi
+
+
+
+=======================================================================================
+
+
+
+# 10.13 coding
+
+
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.13 Remediation : Set SSH Banner\e[0m\n"
+
+
+
+remsshbanner=`grep "^Banner" /etc/ssh/sshd_config | awk '{ print $2 }'`
+
+
+
+if [ "$remsshbanner" != "/etc/issue.net" ]
+
+then
+
+        printf "Configuring setting...\n"
+
+        sed -ie "138d" /etc/ssh/sshd_config
+
+        sed -ie "138iBanner /etc/issue.net" /etc/ssh/sshd_config
+
+        printf "SSH Banner has been confgured : SUCCESSFUL\n\n"
+
+else
+
+        printf "SSH Banner has already bee configured\n\n"
+
+fi
+
 #11.1
 checkPassAlgo=$(authconfig --test | grep hashing | grep sha512)
 checkPassRegex=".*sha512"
