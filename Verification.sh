@@ -2501,6 +2501,78 @@ fi
 
 printf "\n\n"
 
+#10.1 verification 
+
+echo -e "\e[4m10.1 Set SSH Protocol to 2\e[0m\n"
+chksshprotocol=`grep "^Protocol 2" /etc/ssh/sshd_config`
+
+if [ "$chksshprotocol" == "Protocol 2" ]
+then
+	echo "SSH (Protocol) - Passed"
+else
+	echo "SSH (Protocol) - Failed"
+fi
+
+#10.2 verification
+
+echo -e "\e[4m10.2 Set LogLevel to INFO\e[0m\n"
+chksshloglevel=`grep "^LogLevel INFO" /etc/ssh/sshd_config`
+
+if [ "$chksshloglevel" == "LogLevel INFO" ]
+then
+	echo "SSH (LogLevel) - Passed"
+else
+	echo "SSH (LogLevel) - Failed"
+fi
+
+#10.3 verification 
+
+echo -e "\e[4m10.3 Set Permissions on /etc/ssh/sshd_config\e[0m\n"
+deterusergroupownership=`/bin/ls -l /etc/ssh/sshd_config | grep "root root" | grep "\-rw-------"`
+
+if [ -n "deterusergroupownership" ] #-n means not null, -z means null
+then
+	echo "Ownership (User & Group)- Passed"
+else
+	echo "Ownership (User & Group)- Failed"
+fi
+
+#10.4 verification 
+
+echo -e "\e[4m10.4 Disable SSH X11 Forwarding\e[0m\n"
+chkx11forwarding=`grep "^X11Forwarding no" /etc/ssh/sshd_config`
+
+if [ "$chkx11forwarding" == "X11Forwarding no" ]
+then
+	echo "SSH (X11Forwarding no) - Passed"
+else
+	echo "SSH (X11Forwarding no) - Failed"
+fi
+
+#10.5 verification
+
+echo -e "\e[4m10.5 Set SSH MaxAuthTries to 4 or Less\e[0m\n"
+maxauthtries=`grep "^MaxAuthTries 4" /etc/ssh/sshd_config`
+
+if [ "$maxauthtries" == "MaxAuthTries 4" ]
+then
+	echo "SSH (MaxAuthTries 4) - Passed"
+else
+	echo "SSH (MaxAuthTries 4) - Failed"
+fi
+
+#10.6 verification
+
+echo -e "\e[4m10.6 Set SSH IgnoreRhosts to Yes\e[0m\n"
+ignorerhosts=`grep "^IgnoreRhosts yes" /etc/ssh/sshd_config`
+
+if [ "$ignorerhosts" == "IgnoreRhosts yes" ]
+then
+	echo "SSH (IgnoreRhosts yes) - Passed"
+else
+	echo "SSH (IgnoreRhosts yes) - Failed"
+fi
+
 #11.1
 checkPassAlgo=$(authconfig --test | grep hashing | grep sha512)
 checkPassRegex=".*sha512"
