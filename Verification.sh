@@ -373,40 +373,10 @@ else
 fi
 
 
-
-#To capture escaped strings and close the terminal
-
-read -n 1 -s -r -p "Press any key to exit!"
-
-kill -9 $PPID
-
-
-
-============================================================================
-
-
-
+===============================
 
 
 # 3.4 Coding
-
-
-
-
-
-#! /bin/bash
-
-
-
-# To stop user from "Control-C"
-
-trap '' 2
-
-# To stop user from "Control-Z"
-
-trap '' SIGTSTP
-
-
 
 # To underline the title of this sh file
 
@@ -459,41 +429,11 @@ else
 fi
 
 
-
-#To capture escaped strings and close the terminal
-
-read -n 1 -s -r -p "Press any key to exit!"
-
-kill -9 $PPID
-
-
-
-
-
 ==========================================================================
 
 
 
 # 3.5 Coding
-
-
-
-
-
-#! /bin/bash
-
-
-
-
-
-# To stop user from "Control-C"
-
-trap '' 2
-
-# To stop user from "Control-Z"
-
-trap '' SIGTSTP
-
 
 
 # To underline the title of this sh file
@@ -563,38 +503,11 @@ else
 fi
 
 
-
-#To capture escaped strings and close the terminal
-
-read -n 1 -s -r -p "Press any key to exit!"
-
-kill -9 $PPID
-
-
-
 ===================================================================================
 
 
 
 # 3.6 coding
-
-
-
-
-
-#! /bin/bash
-
-
-
-# To stop user from "Control-C"
-
-trap '' 2
-
-# To stop user from "Control-Z"
-
-trap '' SIGTSTP
-
-
 
 # To underline the title of this sh file
 
@@ -682,39 +595,10 @@ else
 
 fi
 
-
-
-#To capture escaped strings and close the terminal
-
-read -n 1 -s -r -p "Press any key to exit!"
-
-kill -9 $PPID
-
-
-
-
-
 =====================================================================================
 
 
-
 # 3.7 coding
-
-
-
-#! /bin/bash
-
-
-
-# To stop user from "Control-C"
-
-trap '' 2
-
-
-
-# To stop user from "Control-Z"
-
-trap '' SIGTSTP
 
 
 
@@ -764,40 +648,9 @@ else
 
 fi 
 
-
-
-
-
-#To capture escaped strings and close the terminal
-
-read -n 1 -s -r -p "Press any key to exit!"
-
-kill -9 $PPID
-
-
-
 ===================================================================================
 
-
-
 # 3.8 coding
-
-
-
-#! /bin/bash
-
-
-
-# To stop user from "Control-C"
-
-trap '' 2
-
-
-
-# To stop user from "Control-Z"
-
-trap '' SIGTSTP
-
 
 
 # To underline the title of this sh file
@@ -836,43 +689,9 @@ do
 
 done    
 
-
-
-
-
-#To capture escaped strings and close the terminal
-
-read -n 1 -s -r -p "Press any key to exit!"
-
-kill -9 $PPID
-
-
-
-
-
 =======================================================================================
 
-
-
 # 3.9 coding
-
-
-
-#! /bin/bash
-
-
-
-# To stop user from "Control-C"
-
-trap '' 2
-
-
-
-# To stop user from "Control-Z"
-
-trap '' SIGTSTP
-
-
 
 # To underline the title of this sh file
 
@@ -945,40 +764,9 @@ do
 done
 
 
-
-
-
-#To capture escaped strings and close the terminal
-
-read -n 1 -s -r -p "Press any key to exit!"
-
-kill -9 $PPID
-
-
-
 ========================================================================================
 
-
-
 # 3.10 coding
-
-
-
-#!/bin/bash
-
-
-
-# To stop user from "Control-C"
-
-trap '' 2
-
-
-
-# To stop user from "Control-Z"
-
-trap '' SIGTSTP
-
-
 
 # To underline the title of this sh file
 
@@ -1027,6 +815,304 @@ else
         printf "MTA - FAILED (Mail Transfer Agent is not configured/installed)\n\n"
 
 fi
+
+
+# 4.1 coding
+
+
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m4.1 Verification: Set User/Group Owner on /boot/grub2/grub.cfg\e[0m\n"
+
+
+
+checkgrubowner=$(stat -L -c "owner=%U group=%G" /boot/grub2/grub.cfg)
+
+checkgrubowner1=$(stat -L -c "owner=%U group=%G" /boot/grub2/grub.cfg | awk -F ' ' '{print $1}')
+
+checkgrubowner2=$(stat -L -c "owner=%U group=%G" /boot/grub2/grub.cfg | awk -F ' ' '{print $2}')
+
+
+
+
+
+if [ "$checkgrubowner" == "owner=root group=root" ]
+
+then
+
+        printf  "/boot/grub/grub.cfg - PASSED (Owner and Group Owner of the file is configure correctly)\n\n"
+
+else
+
+        if [ "$checkgrubowner1" == "owner=root" ] && ["$checkgrubowner2" != "group=root"]
+
+        then
+
+                pritnf "/boot/grub/grub.cfg - FAILED (Group owner of the file is configured INCORRECTLY)\n\n"
+
+        else
+
+                 pritnf "/boot/grub/grub.cfg - FAILED (Owner of the file is configured INCORRECTLY)\n\n"
+
+        fi
+
+fi
+
+
+
+=======================================================================================
+
+
+
+# 4.2 coding
+
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m4.2 Verification: Set Permissions on /boot/grub2/grub.cfg\e[0m\n"
+
+
+
+
+
+checkgrubpermission=`stat -L -c "%a" /boot/grub2/grub.cfg | cut -b 2,3`
+
+
+
+if [ "$checkgrubpermission" == "00" ]
+
+then    
+
+        # If it has been configured CORRECTLY   
+
+        printf "/boot/grub2/grub.cfg - PASSED (Permission of file is configured correctly)\n\n"
+
+
+
+else    
+
+        # If it has been configred wrongly
+
+        printf "/boot/grub2/grub.cfg - FAILED (Permission of file is configured incorrectly)\n\n"
+
+fi   
+
+
+
+========================================================================================
+
+
+
+# 4.3 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m4.3 : Set Boot Loader Password\e[0m\n"
+
+checkbootloaderuser=`grep "^set superusers" /boot/grub2/grub.cfg`
+
+
+
+if [ -z "$checkbootloaderuser" ]
+
+then
+
+        printf "Boot Loader Password - FAILED (Boot loader is not configured with any superuser)\n\n"
+
+
+
+else
+
+        checkbootloaderpassword=`grep "password" /boot/grub2/grub.cfg`
+
+
+
+        if [ -z "$checkbootloaderpassword" ]
+
+        then
+
+                printf "Boot Loader Password - FAILED (Boot loader is not configured with a password)\n\n"
+
+
+
+        else
+
+                printf "Boot Loader Password - PASSED (Boot loader is configured with a superuser and password)\n\n"
+
+        fi
+
+
+
+fi
+
+
+
+========================================================================================
+
+
+
+# 5.1 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m5.1 Verification: Restrict Core Dumps\e[0m\n"
+
+
+
+# Check if core dump is restricted
+
+checkcoredump=`grep "hard core" /etc/security/limits.conf`
+
+coredumpval="* hard core 0"
+
+
+
+if [ "$checkcoredump" == "$coredumpval" ]
+
+then
+
+        checksetuid=`sysctl fs.suid_dumpable`
+
+        setuidval="fs.suid_dumpable = 0"
+
+
+
+        if [ "$checksetuid" == "$setuidval" ]
+
+        then
+
+                printf "Core Dump - PASSED (Core dumps are restricted and setuid programs are prevented from dumping core)\n\n"
+
+
+
+        else
+
+                printf "Core Dump - FAILED (Setuid programs are not prevented from dumping core)\n\n"
+
+        fi
+
+
+
+else
+
+        printf "Core Dump - FAILED (Core dumps are not restricted)\n\n"
+
+fi
+
+
+
+=====================================================================================
+
+
+
+# 5.2 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m5.2 : Enable Randomized Virtual Memory Region Placement\e[0m\n"
+
+
+
+checkvirtualran=`sysctl kernel.randomize_va_space`
+
+virtualranval="kernel.randomize_va_space = 2"
+
+
+
+if [ "$checkvirtualran" == "$virtualranval" ]
+
+then
+
+        printf "Randomized Virtual Memory Region Placement - PASSED (Virtual memory is randomized)\n\n"
+
+
+
+else
+
+        printf "Randomized Virtual Memory Region Placement - FAILED (Virtual memory is not randomized)\n\n"
+
+fi
+
+
+
+=====================================================================================
+
+
+
+# 6.1.1 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m6.1.1 Verification: Install the rsyslogpackage\e[0m\n"
+
+
+
+checkrsyslog=`rpm -q rsyslog | grep "^rsyslog"`
+
+if [ -n "$checkrsyslog" ]
+
+then
+
+  printf "Rsyslog - PASSED (Rsyslog is installed)/n/n"
+
+else
+
+	printf "Rsyslog - FAILED (Rsyslog is not installed)/n/n"
+
+fi
+
+
+
+====================================================================================
+
+
+
+# 6.1.2 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m6.1.2 Verification : Activate the rsyslog Service\e[0m\n"
+
+
+
+checkrsysenable=`systemctl is-enabled rsyslog`
+
+
+
+if [ "$checkrsysenable" == "enabled" ]
+
+then
+
+        printf "Rsyslog - PASSED (Rsyslog is installed and enabled)\n\n"
+
+
+
+else
+
+        printf "Rsyslog - FAILED (Rsyslog is disabled)\n\n"
+
+fi
+
+=======================================================================================
 
 # 6.1.3
 
