@@ -762,6 +762,560 @@ fi
 printf "\n\n"
 
 ##########################################################################################
+#9.1 - Check whether Anacron Daemon is enabled or not
+
+echo -e "\e[4m9.1 : Enable anacron Daemon\e[0m\n"
+
+if rpm -q cronie-anacron
+then
+	echo "Remediation passed: Anacron Daemon is installed."
+		
+else
+	sudo yum install cronie-anacron -y
+fi
+
+if rpm -q cronie-anacron #double checking 
+then
+	:
+	
+else
+	echo "It seems as if an error has occured and the Anacron Daemon service cannot be installed. Pleas ensure that you have created a yum repository."
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#9.2 - Check if Crond Daemon is enabled
+
+echo -e "\e[4m9.2 : Enable crond Daemon\e[0m\n"
+
+checkCrondDaemon=$(systemctl is-enabled crond)
+
+if [ "$checkCrondDaemon" = "enabled" ]
+then
+	echo "Remedation passed: Crond Daemon is enabled."
+		
+else
+	systemctl enable crond
+	doubleCheckCrondDaemon=$(systemctl is-enabled crond)
+	
+	if [ "$doubleCheckCrondDaemon" = "enabled" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occurred and crond cannot be enabled. Please ensure that you have a yum repository available and cron service installed (yum install cron -y)."
+	fi
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#9.3 - Check if the correct permissions is configured for /etc/anacrontab
+
+echo -e "\e[4m9.3 : Set User/Group Owner and Permission on /etc/anacrontab\e[0m\n"
+
+anacrontabFile="/etc/anacrontab"
+anacrontabPerm=$(stat -c "%a" "$anacrontabFile")
+anacrontabRegex="^[0-7]00$"
+
+if [[ $anacrontabPerm =~ $anacrontabRegex ]]
+then
+	echo "Remedation passed: The correct permissions has been configured for $anacrontabFile."
+	
+else
+	sudo chmod og-rwx $anacrontabFile
+	anacrontabPermCheck=$(stat -c "%a" "$anacrontabFile")
+    anacrontabRegexCheck="^[0-7]00$"
+	
+	if [[ $anacrontabPermCheck =~ $anacrontabRegexCheck ]]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and the permissions for $anacrontabFile cannot be configured as required."
+	fi
+fi
+
+anacrontabOwn=$(stat -c "%U" "$anacrontabFile")
+
+if [ $anacrontabOwn = "root" ]
+then
+	echo "Remediation passed: The owner of the file $anacrontabFile is root."
+	
+else
+	sudo chown root:root $anacrontabFile
+	anacrontabOwnCheck=$(stat -c "%U" "$anacrontabFile")
+	
+	if [ $anacrontabOwnCheck = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and the owner of the file ($anacrontabFile) cannot be set as root."
+	fi
+fi
+
+anacrontabGrp=$(stat -c "%G" "$anacrontabFile")
+
+if [ $anacrontabGrp = "root" ]
+then
+	echo "Remediation passed: The group owner of the file $anacrontabFile is root."
+	
+else
+	sudo chown root:root $anacrontabFile
+	anacrontabGrpCheck=$(stat -c "%G" "$anacrontabFile")
+	
+	if [ $anacrontabGrpCheck = "root" ]
+	then
+		: 
+
+	else
+		echo "It seems as if an error has occured and the group owner of the $anacrontabFile file cannot be set as root instead."
+	fi
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#9.4 - Check if the correct permissions has been configured for /etc/crontab
+
+echo -e "\e[4m9.4 : Set User/Group Owner and Permission on /etc/crontab\e[0m\n"
+
+crontabFile="/etc/crontab"
+crontabPerm=$(stat -c "%a" "$crontabFile")
+crontabRegex="^[0-7]00$"
+
+if [[ $crontabPerm =~ $crontabRegex ]]
+then
+	echo "Remediation passed: The correct permissions has been set for $crontabFile."
+	
+else
+	sudo chmod og-rwx $crontabFile
+	checkCrontabPerm=$(stat -c "%a" "$crontabFile")
+	checkCrontabRegex="^[0-7]00$"
+	
+	if [[ $checkCrontabPerm =~ $checkCrontabRegex ]]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and the permisions of the file $crontabFile cannot be set as recommended."
+	fi
+fi
+
+crontabOwn=$(stat -c "%U" "$crontabFile")
+
+if [ $crontabOwn = "root" ]
+then
+	echo "Remediation passed: The owner of the file $crontabFile is root."
+	
+else
+	sudo chown root:root $crontabFile
+	checkCrontabOwn=$(stat -c "%U" "$crontabFile")
+	
+	if [ $checkCrontabOwn = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the owner of the $crontabFile file cannot be set as root instead."
+	fi
+fi
+
+crontabGrp=$(stat -c "%G" "$crontabFile")
+
+if [ $crontabGrp = "root" ]
+then
+	echo "Remediation passed: The group owner of the file $crontabFile is root."
+	
+else
+	sudo chown root:root $crontabFile
+	checkCrontabGrp=$(stat -c "%G" "$crontabFile")
+	
+	if [ $checkCrontabGrp = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the group owner of the $crontabFile file cannot be set as root instead."
+	fi
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#9.5 - Check if the correct permissions has been set for /etc/cron.XXXX
+
+echo -e "\e[4m9.5 : Set User/Group Owner and Permission on /etc/cron.[hourly,daily,weekly,monthly]\e[0m\n"
+
+patchCronHDWMPerm(){
+	local cronHDWMType=$1
+	local cronHDWMFile="/etc/cron.$cronHDWMType"
+	local cronHDWMPerm=$(stat -c "%a" "$cronHDWMFile")
+	local cronHDWMRegex="^[0-7]00$"
+	
+	if [[ $cronHDWMPerm =~ $cronHDWMRegex ]]
+	then
+		echo "Remediation passed: The correct permissions has been set for $cronHDWMFile."
+		
+	else
+		sudo chmod og-rwx $cronHDWMFile
+		local checkCronHDWMPerm=$(stat -c "%a" "$cronHDWMFile")
+		local checkCronHDWMRegex="^[0-7]00$"
+		
+		if [[ $checkCronHDWMPerm =~ $checkCronHDWMRegex ]]
+       	then
+  			:
+				
+       	else
+			echo "It seems as if an error has occured and that the permissions for the $cronHDWMFile file cannot be set as recommended."
+		fi
+	fi
+
+	local cronHDWMOwn="$(stat -c "%U" "$cronHDWMFile")"
+	
+	if [ $cronHDWMOwn = "root" ]
+	then
+		echo "Remediation passed: The owner of the $cronHDWMFile file is root."
+		
+	else
+		sudo chown root:root $cronHDWMFile
+		local checkCronHDWMOwn="$(stat -c "%U" "$cronHDWMFile")"
+		
+	    if [ $checkCronHDWMOwn = "root" ]
+	    then
+			:
+			
+		else
+			echo "It seems as if an error has occured and that the owner of the $cronHDWMFile cannot be set as root instead."
+		fi
+	fi
+
+	local cronHDWMGrp="$(stat -c "%G" "$cronHDWMFile")"
+	
+	if [ $cronHDWMGrp = "root" ]
+	then
+		echo "Remediation passed: The group owner of the $cronHDWMFile file is root."
+		
+	else
+		sudo chown root:root $cronHDWMFile
+		local checkCronHDWMGrp="$(stat -c "%G" "$cronHDWMFile")"
+		if [ $checkCronHDWMGrp = "root" ]
+		then
+			:
+			
+		else
+			echo "It seems as if an error has occured and that the group owner of the $cronHDWMFile cannot be set to root instead."
+		fi
+	fi
+}
+
+patchCronHDWMPerm "hourly"
+patchCronHDWMPerm "daily"
+patchCronHDWMPerm "weekly"
+patchCronHDWMPerm "monthly"
+
+printf "\n\n"
+
+##########################################################################################
+#9.6 - Check if the permissions has been set correctly for /etc/cron.d
+
+echo -e "\e[4m9.6 : Set User/Group Owner and Permission on /etc/cron.d\e[0m\n"
+
+cronDFile="/etc/cron.d"
+cronDPerm=$(stat -c "%a" "$cronDFile")
+cronDRegex="^[0-7]00$"
+
+if [[ $cronDPerm =~ $cronDRegex ]]
+then
+	echo "Remediation passed: The correct permissions has been set for $cronDFile."
+	
+else
+	sudo chmod og-rwx $cronDFile
+	checkCronDPerm=$(stat -c "%a" "$cronDFile")
+	checkCronDRegex="^[0-7]00$"
+	
+	if [[ $checkCronDPerm =~ $checkCronDRegex ]]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the recommended permissions for the $cronDFile file cannot be configured."
+	fi
+fi
+
+cronDOwn=$(stat -c "%U" "$cronDFile")
+
+if [ $cronDOwn = "root" ]
+then
+	echo "Remediation passed: The owner of the $cronDFile file is root."
+	
+else
+	sudo chown root:root $cronDFile
+	checkCronDOwn=$(stat -c "%U" "$cronDFile")
+	
+	if [ $checkCronDOwn = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the owner of the $cronDFile cannot be set as root instead."
+	fi
+fi
+
+cronDGrp=$(stat -c "%G" "$cronDFile")
+
+if [ $cronDGrp = "root" ]
+then
+	echo "Remediation passed: The group owner of the $cronDFile file is root."
+	
+else
+	sudo chown root:root $cronDFile
+	checkCronDGrp=$(stat -c "%G" "$cronDFile")
+	
+	if [ $checkCronDGrp = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the group owner of the $cronDFile cannot be set as root instead."
+	fi
+fi
+
+printf "\n\n"
+
+##########################################################################################
+#9.7 & 9.8 - Restrict at Daemon & Restrict at/cron to Authorized Users
+
+echo -e "\e[4m9.7 & 9.8 : Restrict at Daemon & Restrict at/cron to Authorized Users\e[0m\n"
+
+#Check if /etc/at.deny is deleted and that a /etc/at.allow exists and check the permissions of the /etc/at.allow file
+echo -e "\e[4mat.deny & at.allow files\e[0m\n"
+
+if [ -e "$atDenyFile" ]
+then
+	sudo rm $atDenyFile
+else
+	echo "Remediation passed: The file is deleted or does not exist."
+fi
+
+atAllowFile="/etc/at.allow"
+
+if [ -e "$atAllowFile" ]
+then
+	atAllowPerm=$(stat -c "%a" "$atAllowFile")
+	atAllowRegex="^[0-7]00$"
+	
+	if [[ $atAllowPerm =~ $atAllowRegex ]]
+	then
+		echo "Remediation passed: The correct permissions for $atAllowFile has been configured."
+		
+	else
+		sudo chmod og-rwx $atAllowFile
+		checkAtAllowPerm=$(stat -c "%a" "$atAllowFile")
+		checkAtAllowRegex="^[0-7]00$"
+		
+		if [[ $checkAtAllowPerm =~ $checkAtAllowRegex ]]	
+		then
+			:
+			
+		else
+			echo "It seems as if an error has occured and the recommended permissions cannot be set for the $atAllowFile file."
+		fi
+    fi
+
+	atAllowOwn=$(stat -c "%U" "$atAllowFile")
+	
+	if [ $atAllowOwn = "root" ]
+	then
+		echo "Remediation passed: The owner of the $atAllowFile is root."
+		
+	else
+		sudo chown root:root $atAllowFile
+		checkAtAllowOwn=$(stat -c "%U" "$atAllowFile")
+		
+		if [ $checkAtAllowOwn = "root" ]
+		then
+			:
+			
+		else
+			echo "It seems as if an error has occured and that the owne of the $overallCounter file cannot be set as root instead."
+		fi
+    fi
+
+	atAllowGrp=$(stat -c "%G" "$atAllowFile")
+	
+	if [ $atAllowGrp = "root" ]
+	then
+		echo "Remediation passed: The group owner of the $atAllowFile is root."
+		
+	else
+		sudo chown root:root $atAllowFile
+		checkAtAllowGrp=$(stat -c "%G" "$atAllowFile")
+		
+		if [ $checkAtAllowGrp = "root" ]
+		then
+			:
+			
+		else
+			echo "It seems as if an error has occured and that the group owner of the $atAllowFile file cannot as set to root instead."
+		fi
+    fi
+	
+else
+	touch $atAllowFile
+	sudo chmod og-rwx $atAllowFile
+	checkAtAllowPerm2=$(stat -c "%a" "$atAllowFile")
+	checkAtAllowRegex2="^[0-7]00$"
+	
+	if [[ $checkAtAllowPerm2 =~ $checkAtAllowRegex2 ]]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and the recommended permissions cannot be configured for the $atAllowFile file."
+	fi
+	
+	sudo chown root:root $atAllowFile
+	checkAtAllowOwn2=$(stat -c "%U" "$atAllowFile")
+	
+	if [ $checkAtAllowOwn2 = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the owner of the $atAllowFile file cannot be set as root instead"
+    fi	
+
+	sudo chown root:root $atAllowFile
+	checkAtAllowGrp2=$(stat -c "%G" "$atAllowFile")
+	
+	if [ $checkAtAllowGrp2 = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the group owner of the $atAllowFile file cannot be set as root instead."
+	fi
+fi
+
+printf "\n"
+
+#Check if /etc/cron.deny is deleted and that a /etc/cron.allow exists and check the permissions of the /etc/cron.allow file
+echo -e "\e[4mcron.deny & cron.allow files\e[0m\n"
+
+if [ -e "$cronDenyFile" ]
+then
+    	sudo rm $cronDenyFile
+		
+else
+    	echo "Remediation passed: The file is deleted or does not exist."
+fi
+
+cronAllowFile="/etc/cron.allow"
+
+if [ -e "$cronAllowFile" ]
+then
+	cronAllowPerm=$(stat -c "%a" "$cronAllowFile")
+	cronAllowRegex="^[0-7]00$"
+		
+	if [[ $cronAllowPerm =~ $cronAllowRegex ]]
+	then
+		echo "Remediation passed: The correct permissions for $cronAllowFile has been configured."
+		
+	else
+		sudo chmod og-rwx $cronAllowFile
+		checkCronAllowPerm=$(stat -c "%a" "$atAllowFile")
+		checkCronAllowRegex="^[0-7]00$"
+		
+		if [[ $checkCronAllowPerm =~ $checkCronAllowRegex ]]
+		then
+			:
+			
+		else
+			echo "It seems as if an error has occured and the recommended permissions cannot be configured for the $cronAllowFile file."
+        fi
+    fi
+
+	cronAllowOwn=$(stat -c "%U" "$cronAllowFile")
+	
+	if [ $cronAllowOwn = "root" ]
+	then
+		echo "Remedation passed: The owner of the $cronAllowFile is root."
+		
+	else
+		sudo chown root:root $cronAllowFile
+		checkCronAllowOwn=$(stat -c "%U" "$cronAllowFile")
+		
+		if [ $checkCronAllowOwn = "root" ]
+		then
+			:
+			
+		else
+			echo "It seems as if an error has occured and that the owner of the $cronAllowFile file cannot be set as root instead."
+		fi
+    fi
+
+	cronAllowGrp=$(stat -c "%G" "$cronAllowFile")
+	
+	if [ $cronAllowGrp = "root" ]
+	then
+		echo "Remediation passed: The group owner of the $cronAllowFile is set to root."
+		
+	else
+		sudo chown root:root $cronAllowFile
+		checkCronAllowGrp=$(stat -c "%G" "$cronAllowFile")
+		
+		if [ $checkCronAllowGrp = "root" ]
+		then
+			:
+			
+		else
+			echo "It seems as if an error has occured and that the group owner of the $cronAllowFile cannot be set as root instead."
+		fi
+	fi
+	
+else
+	touch $cronAllowFile
+	sudo chmod og-rwx $cronAllowFile
+	checkCronAllowPerm2=$(stat -c "%a" "$cronAllowFile")
+	checkCronAllowRegex2="^[0-7]00$"
+	
+	if [[ $checkCronAllowPerm2 =~ $checkCronAllowRegex2 ]]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and the recommended permissions cannot be configured for the $cronAllowFIle file."
+	fi
+
+	sudo chown root:root $cronAllowFile
+	checkCronAllowOwn2=$(stat -c "%U" "$cronAllowFile")
+	
+	if [ $checkCronAllowOwn2 = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the owner of the $cronAllowFile cannot be set as root instead"
+	fi
+
+	sudo chown root:root $cronAllowFile
+	checkCronAllowGrp2=$(stat -c "%G" "$cronAllowFile")
+	
+	if [ $checkCronAllowGrp2 = "root" ]
+	then
+		:
+		
+	else
+		echo "It seems as if an error has occured and that the group owner of the $cronAllowFile cannot be set as root instead."
+	fi
+fi
+
+printf "\n\n"
+
+##########################################################################################
 
 #read -n 1 -s -r -p "Press any key to exit!"
 #kill -9 $PPID
