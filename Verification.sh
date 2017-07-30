@@ -2955,6 +2955,298 @@ echo ' '
 
 done
 
+# 7.19 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m7.19 Verification : Check for Duplicate GIDs\e[0m\n"
+
+
+
+/bin/cat /etc/group | /bin/cut -f3 -d":" | /bin/sort -n | /usr/bin/uniq -c | while read x ;
+
+do
+
+        [ -z "${x}" ] && break
+
+        set - $x
+
+        if [ $1 -gt 1 ]; then
+
+                grps=`/bin/gawk -F: '($3 == n) { print $1 }' n=$2 /etc/group | /usr/bin/xargs`
+
+                echo "Duplicate GID ($2): ${grps}"
+
+        fi
+
+done
+
+
+
+=======================================================================================
+
+
+
+# 7.20 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m7.20 Verification : Check that Reserved UIDs Are Assigned to only System Accounts\e[0m\n"
+
+
+
+systemaccount=(root bin daemon adm lp sync shutdown halt mail news uucp operator games gopher ftp nobody nscd vcsa rpc mailnull smmsp pcap ntp dbus avahi sshd rpcuser nfsnobody haldaemon avahi-autoipd distcache apache oprofile webalizer dovecot squid named xfs gdm sabayon usbmuxd rtkit abrt saslauth pulse postfix tcpdump systemd-network tss radvd [51]=qemu)
+
+
+
+nameCounter=0
+
+systemNameFile="/etc/passwd"
+
+while IFS=: read -r f1 f2 f3 f4 f5 f6 f7
+
+do
+
+	if [[ $f3 -lt 500 ]]
+
+	then
+
+		for i in ${systemaccount[*]}
+
+		do
+
+			if [[ $f1 == $i ]]
+
+			then
+
+				nameCounter=$((nameCounter+1))
+
+			else
+
+				nameCounter=$((nameCounter+0))
+
+			fi
+
+		done
+
+
+
+		if [[ $nameCounter < 1 ]]
+
+		then
+
+			echo "User '$f1' is not a system account but has a reserved UID of $f3."
+
+		fi
+
+		nameCounter=0
+
+	fi
+
+done <"$systemNameFile"
+
+
+
+=========================================================================================
+
+
+
+# 7.21 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m7.21 Verification : Check for Duplicate User Names\e[0m\n"
+
+
+
+cat /etc/passwd | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c |
+
+while read x ; do
+
+        [ -z "${x}" ] && break
+
+        set - $x
+
+        if [ $1 -gt 1 ]; then
+
+                uids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2 /etc/passwd | xargs`
+
+                echo "There are $1 duplicate user name titled '$2' found in the system and its respective UIDs are ${uids}."
+
+        fi
+
+done
+
+
+
+====================================================================================
+
+
+
+# 7.22 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m7.22 Verification : Check for Duplicate Group Names\e[0m\n"
+
+
+
+cat /etc/group | cut -f1 -d":" | /bin/sort -n | /usr/bin/uniq -c |
+
+while read x ; do
+
+        [ -z "${x}" ] && break
+
+        set - $x
+
+        if [ $1 -gt 1 ]; then
+
+        gids=`/bin/gawk -F: '($1 == n) { print $3 }' n=$2 /etc/group | xargs`
+
+        echo "There are $1 duplicate group name titled '$2' found in the system and its respective UIDs are ${gids}."
+
+        fi
+
+done
+
+
+
+==========================================================================================
+
+
+
+# 7.23 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m7.23 Verification : Check for Presense of User .forward Files\e[0m\n"
+
+
+
+
+
+for dir in `/bin/cat /etc/passwd | /bin/awk -F: '{ print $6 }'`; do
+
+        if [ ! -h "$dir/.forward" -a -f "$dir/.forward" ]; then
+
+        echo ".forward file titled '$dir/.forward' found in the system."
+
+        fi
+
+done
+
+
+
+===============================================================================================
+
+
+
+# 8.1 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m8.1 Verification :Set Warning Banner for Standard Login Services\e[0m\n"
+
+
+
+current=$(cat /etc/motd)
+
+
+
+standard="WARNING: UNAUTHORIZED USERS WILL BE PROSECUTED!"
+
+
+
+if [ "$current" == "$standard" ]; then
+
+        echo "Audit status: PASSED!"
+
+else
+
+        echo "Audit status: FAILED!"
+
+fi
+
+
+
+====================================================================================================
+
+
+
+# 8.2 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m8.2 Verification : Remove OS Information from Login Warning Banners\e[0m\n"
+
+
+
+current1=$(egrep '(\\v|\\r|\\m|\\s)' /etc/issue)
+
+current2=$(egrep '(\\v|\\r|\\m|\\s)' /etc/motd)
+
+current3=$(egrep '(\\v|\\r|\\m|\\s)' /etc/issue.net)
+
+
+
+string1="\\v"
+
+string2="\\r"
+
+string3="\\m"
+
+string4="\\s"
+
+
+
+if [[ $current1 =~ $string1 || $current1 =~ $string2 || $current1 = ~$string3 || $current1 =~ $string4 ]]; then
+
+        echo "Audit status: FAILED! [OS Information found in /etc/issue]"
+
+else
+
+        echo "/etc/issue has no issues. Continuing with verification"
+
+fi
+
+
+
+if [[ $current2 =~ $string1 || $current2 =~ $string2 || $current2 = ~$string3 || $current2 =~ $string4 ]]; then
+
+        echo "Audit status: FAILED! [OS Information found in /etc/motd]"
+
+else
+
+        echo "/etc/motd has no issues. Continuing with verification"
+
+fi
+
+
+
+if [[ $current3 =~ $string1 || $current3 =~ $string2 || $current3 = ~$string3 || $current4 =~ $string4 ]]; then
+
+        echo "Audit status: FAILED! [OS Information found in /etc/issue.net]"
+
+else
+
+        echo "/etc/issue.net has no issues. Continuing with verification"
+
+fi
+
 ##########################################################################################
 #9.1 - Check whether Anacron Daemon is enabled or not
 
