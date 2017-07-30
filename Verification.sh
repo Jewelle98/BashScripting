@@ -3659,6 +3659,296 @@ else
 	echo "SSH (IgnoreRhosts yes) - Failed"
 fi
 
+# 10.7 coding
+
+
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.7 Verification : Set SSH HostbasedAuthentication to No\e[0m\n"
+
+
+
+hostbasedauthentication=`grep "^HostbasedAuthentication no" /etc/ssh/sshd_config`
+
+
+
+if [ "$hostbasedauthentication" == "HostbasedAuthentication no" ]
+
+then
+
+        printf "SSH (HostbasedAuthentication no) - PASSED (Correct SSH Setting)\n\n"
+
+else
+
+        printf "SSH (HostbasedAuthentication no) - FAILED (Wrong SSH Setting)\n\n"
+
+fi
+
+
+
+===========================================================================================
+
+
+
+# 10.8 coding
+
+
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.8 Verification : Disable SSH Root Login\e[0m\n"
+
+
+
+chksshrootlogin=`grep "^PermitRootLogin" /etc/ssh/sshd_config`
+
+
+
+if [ "$chksshrootlogin" == "PermitRootLogin no" ]
+
+then
+
+        echo "SSH (Permit Root Login) - Pass (SSH Root Login is disbaled)"
+
+else
+
+        echo "SSH (Permit Root Login) - Fail (SSH Root Login is enabled)"
+
+fi
+
+
+
+
+
+=====================================================================================
+
+
+
+# 10.9 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.9 Verification : Set SSH PermitEmptyPasswords to No\e[0m\n"
+
+
+
+chksshemptypswd=`grep "^PermitEmptyPasswords" /etc/ssh/sshd_config`
+
+
+
+if [ "$chksshemptypswd" == "PermitEmptyPasswords no" ]
+
+then
+
+        printf "SSH (Permit Empty Passwords) - PASSED (Settings is configured correctly)\n\n"
+
+else
+
+        printf "SSH (Permit Empty Passwords) - FAILED (Settings is configured wrongly)\n\n"
+
+fi
+
+
+
+===================================================================================
+
+# 10.10 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.10 Verification : Use Only Approved Ciphers in Counter Mode\e[0m\n"
+
+
+
+chksshcipher=`grep "^Ciphers" /etc/ssh/sshd_config`
+
+
+
+if [ "$chksshcipher" == "Ciphers aes128-ctr,aes192-ctr,aes256-ctr" ]
+
+then
+
+        printf "SSH (Cipher) - PASSED (Approved ciphers are being used)\n\n"
+
+else
+
+        printf "SSH (Cipher) - FAILED (Disapproved ciphers are being used)\n\n"
+
+fi
+
+
+
+=================================================================================
+
+
+
+# 10.11 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.11 Verification : Use Idle Timeout Interval for User Login\e[0m\n"
+
+
+
+chksshcai=`grep "^ClientAliveInterval" /etc/ssh/sshd_config`
+
+chksshcacm=`grep "^ClientAliveCountMax" /etc/ssh/sshd_config`
+
+
+
+if [ "$chksshcai" == "ClientAliveInterval 300" ]
+
+then
+
+        printf "SSH (ClientAliveInterval) - PASSED (Correct SSH Setting)\n"
+
+else
+
+        printf "SSH (ClientAliveInterval) - FAILED (Wrong SSH Setting)\n"
+
+fi
+
+
+
+if [ "$chksshcacm" == "ClientAliveCountMax 0" ]
+
+then
+
+        printf "SSH (ClientAliveCountMax) - PASSED (Correct SSH Setting)\n\n"
+
+else
+
+        printf "SSH (ClientAliveCountMax) - FAILED (Wrong SSH Setting)\n\n"
+
+fi
+
+
+
+======================================================================================
+
+
+
+# 10.12 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.12 Verification : Limit Access Via SSH\e[0m\n"
+
+
+
+chksshalwusrs=`grep "^AllowUsers" /etc/ssh/sshd_config`
+
+chksshalwgrps=`grep "^AllowGroups" /etc/ssh/sshd_config`
+
+chksshdnyusrs=`grep "^DenyUsers" /etc/ssh/sshd_config`
+
+chksshdnygrps=`grep "^DenyGroups" /etc/ssh/sshd_config`
+
+
+
+#Manually created users as question was not specific
+
+
+
+if [ -z "$chksshalwusrs" -o "$chksshalwusrs" == "AllowUsers[[:space:]]" ]
+
+then
+
+        printf "SSH (AllowUsers) - FAILED (Setting was not configured incorrectly)\n\n"
+
+else
+
+        printf "SSH (AllowUsers) - PASSED (Setting was configured correctly)\n\n"
+
+fi
+
+
+
+if [ -z "$chksshalwgrps" -o "$chksshalwgrps" == "AllowGroups[[:space:]]" ]
+
+then
+
+        printf "SSH (AllowGroups) - FAILED (Setting was not configured incorrectly)\n\n"
+
+else
+
+        printf "SSH (AllowGroups) - PASSED (Setting was configured correctly)\n\n"
+
+fi
+
+
+
+if [ -z "$chksshdnyusrs" -o "$chksshdnyusrs" == "DenyUsers[[:space:]]" ]
+
+then
+
+        printf "SSH (DenyUsers) - FAILED (Setting was not configured incorrectly)\n\n"
+
+else
+
+        printf "SSH (DenyUsers) - PASSED (Setting was configured correctly)\n\n"
+
+fi
+
+
+
+if [ -z "$chksshdnygrps" -o "$chksshdnygrps" == "DenyGroups[[:space:]]" ]
+
+then
+
+        printf "SSH (DenyGroups) - FAILED (Setting was not configured incorrectly)\n\n"
+
+else
+
+        printf "SSH (DenyGroups) - PASSED (Setting was configured correctly)\n\n"
+
+fi
+
+
+
+==========================================================================================
+
+
+
+# 10.13 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m10.13 Verification : Set SSH Banner\e[0m\n"
+
+
+
+chksshbanner=`grep "^Banner" /etc/ssh/sshd_config | awk '{ print $2 }'`
+
+
+
+if [ "$chksshbanner" == "/etc/issue.net" -o "$chksshbanner" == "/etc/issue" ]
+
+then
+
+        printf "SSH (Banner) - PASSED (SSH Banner is configured correctly)\n\n"
+
+else
+
+        printf "SSH (Banner) - FAILED (SSH Banner is not configured correctly)\n\n"
+
+fi
+
 #11.1
 checkPassAlgo=$(authconfig --test | grep hashing | grep sha512)
 checkPassRegex=".*sha512"
