@@ -434,6 +434,146 @@ fi
 printf "\n\n"
 
 ##########################################################################################
+#7.1
+
+count=1
+echo -e "\e[4m7.$count : Set Password Expiration Days\e[0m\n"
+value=$(cat /etc/login.defs | grep "^PASS_MAX_DAYS" | awk '{ print $2 }')
+
+standard=90 
+
+if [ ! $value = $standard ]; then
+	echo "Current PASS_MAX_DAYS = $value"
+	echo "Result: FAILED! (PASS_MAX_DAYS should be set to less than 90 days)"
+	((count++))
+	
+elif [ $value = $standard ]; then
+	echo "Current Password Maximum = $value"
+	echo "Result: PASSED! (PASS_MAX_DAYS is set to less than 90 days)"
+	((count++))
+	
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+	((count++))
+fi
+
+##########################################################################################
+#7.2
+
+printf "\n\n"
+echo -e "\e[4m7.$count : Set Password Change Minimum Number of Days\e[0m\n"
+value=$(cat /etc/login.defs | grep "^PASS_MIN_DAYS" | awk '{ print $2 }')
+
+standard=7 
+
+if [ ! $value = $standard ]; then
+	echo "Current PASS_MIN_DAYS = $value"
+	echo "Result: FAILED! (PASS_MIN_DAYS should be set to more than 7 days)"
+	((count++))
+	
+elif [ $value = $standard ]; then
+	echo "Current PASS_MIN_DAYS = $value"
+	echo "Result: PASSED! (PASS_MIN_DAYS is be set to more than 7 days)"
+	((count++))
+	
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+   ((count++))
+fi
+
+##########################################################################################
+#7.3
+
+printf "\n\n"
+echo -e "\e[4m7.$count : Set Password Expiring Warning Days\e[0m\n"
+value=$(cat /etc/login.defs | grep "^PASS_WARN_AGE" | awk '{ print $2 }')
+
+standard=7 
+
+if [ ! $value = $standard ]; then
+	echo "Current PASS_WARN_AGE = $value"
+	echo "Result: FAILED! (PASS_WARN_AGE should be set to more than 7 days)"
+	((count++))
+	
+elif [ $value = $standard ]; then
+	echo "Current PASS_WARN_AGE = $value"
+	echo "Result: PASSED! (PASS_WARN_AGE is be set to more than 7 days)"
+	((count++))
+	
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+   ((count++))
+fi
+
+##########################################################################################
+#7.4
+
+printf "\n\n"
+echo -e "\e[4m7.$count : Disable System Accounts\e[0m\n"
+
+current=$(egrep -v "^\+" /etc/passwd | awk -F: '($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $3<1000 && $7!="/sbin/nologin" && $7!="/bin/false") { print $1 }')
+
+if [ -z "$current" ]; then
+	echo "Result: PASSED! (No system accounts can be accessed)"
+	((count++))
+	
+elif [ ! -z "$current" ]; then
+	echo "Result: FAILED! (System account(s) can be accessed)"
+	((count++))
+	
+else
+	echo "Result: ERROR, CONTACT SYSTEM ADMINISTRATOR!"
+	((count++))
+fi
+
+##########################################################################################
+#7.5
+
+printf "\n\n"
+echo -e "\e[4m7.$count : Set Default Group for root Account\e[0m\n"
+
+current=$(grep "^root:" /etc/passwd | cut -f4 -d:)
+
+if [ "$current" == 0 ]; then
+	echo "Result: PASSED! (Default group for root configured correctly)"
+	((count++))
+	
+else
+	echo "Result: FAILED! (Default group for root configured incorrectly)"
+	((count++))
+fi
+
+##########################################################################################
+#7.6
+
+printf "\n\n"
+echo -e "\e[4m7.$count : Set Default umask for Users\e[0m\n"
+
+current=$(egrep -h "\s+umask ([0-7]{3})" /etc/bashrc /etc/profile | awk '{print $2}')
+
+counter=0
+
+for line in ${current}
+do
+	if [ "${line}" != "077" ] 
+	then
+		((counter++))	
+	fi
+done
+
+if [ ${counter} == 0 ]
+then 
+	echo "Result: PASSED! (Umask is set to 077)"
+	((count++))
+	
+else     
+	 echo "Result: FAILED! (Umask is not set to 077)"
+	((count++))
+fi
+
+printf "\n\n"
+
+##########################################################################################
 
 #read -n 1 -s -r -p "Press any key to exit!"
 #kill -9 $PPID
