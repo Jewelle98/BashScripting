@@ -1190,6 +1190,526 @@ fi
 =======================================================================================
 
 
+
+# 4.1 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m4.1 Remediation : Set User/Group Owner on /boot/grub2/grub.cfg\e[0m\n"
+
+
+
+checkowner=$(stat -L -c "owner=%U group=%G" /boot/grub2/grub.cfg)
+
+if [ "$checkowner" == "owner=root group=root" ]
+
+then
+
+        #If owner and group is configured CORRECTLY
+
+        printf "/boot/grub/grub.cfg - PASSED (Owner and Group Owner of the file is configure correctly\n"
+
+        printf "$checkowner\n\n"
+
+else
+
+        #If owner ang group is configured INCORRECTLY
+
+        chown root:root /boot/grub2/grub.cfg
+
+        printf "Both owner and group belong to ROOT user : FAILED"
+
+        printf "\nChanging the owner and group..."
+
+        printf "\nOwner and Group Owner ettings has been set: SUCCESSFUL\n"
+
+fi
+
+
+
+====================================================================================
+
+
+
+# 4.2 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m4.2 Remediation : Set Permissions on /boot/grub2/grub.cfg\e[0m\n"
+
+
+
+checkpermission=$(stat -L -c "%a" /boot/grub2/grub.cfg | cut -c 2,3)
+
+
+
+if [ "$checkpermission" == 00 ]
+
+then
+
+        #If the permission is configured CORRECTLY
+
+        printf "Configuration of Permission: PASSED\n\n"
+
+else
+
+        #If the permission is configured INCORRECTLY
+
+        printf "Configuration of Permission: FAIlED\n"
+
+        printf "Changing configuration...\n"
+
+        chmod og-rwx /boot/grub2/grub.cfg
+
+        printf "Permission Settings had been configured : SUCCESSFUL\n\n"
+
+fi
+
+
+
+=====================================================================================
+
+
+
+
+
+# 4.3 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m4.3 : Set Boot Loader Password\e[0m\n"
+
+
+
+
+
+checkboot=$(grep "set superusers" /boot/grub2/grub.cfg | sort | head -1 | awk -F '=' '{print $2}' | tr -d '"')
+
+user=$(grep "set superusers" /boot/grub2/grub.cfg | sort | head -1 | awk -F '=' '{print $2}')
+
+if [ "$checkboot" == "root" ]
+
+then
+
+        #If the configuration is CORRECT
+
+        printf "\nBoot Loader Settings : PASSED"
+
+        printf "\nThe following are the superusers: "
+
+        printf "$user\n\n"
+
+else
+
+        #If the configuration is INCORRECT
+
+        printf "\nBoot Loader Settings : FAILED"
+
+        printf "\nConfiguring Boot Loader Settings...\n"
+
+        printf "password\npassword" >> /etc/bootloader.txt
+
+        grub2-mkpasswd-pbkdf2 < /etc/bootloader.txt > /etc/boot.md5
+
+        printf "\ncat << EOF\nset superusers=root\n" >> /etc/grub.d/00_header
+
+        ans=$(cat /etc/boot.md5 | grep "grub" | awk -F ' ' '{print $7}')
+
+        printf "passwd_pbkdf2 root $ans\nEOF" >> /etc/grub.d/00_header
+
+        grub2-mkconfig -o /boot/grub2/grub.cfg &> /dev/null
+
+        printf "\nBoot loader settings are now configured"
+
+        printf "\n"
+
+        newuser=$(grep "set superusers" /boot/grub2/grub.cfg | sort | head -1 | awk -F '=' '{print $2}')
+
+        printf "\nThe following are the superusers: "
+
+        printf "$newuser\n\n"
+
+fi
+
+
+
+====================================================================================
+
+
+
+
+
+# 5.1 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m5.1 Verification: Restrict Core Dumps\e[0m\n"
+
+
+
+# Check if core dump is restricted
+
+checkcoredump=`grep "hard core" /etc/security/limits.conf`
+
+coredumpval="* hard core 0"
+
+
+
+if [ "$checkcoredump" == "$coredumpval" ]
+
+then
+
+        checksetuid=`sysctl fs.suid_dumpable`
+
+        setuidval="fs.suid_dumpable = 0"
+
+
+
+        if [ "$checksetuid" == "$setuidval" ]
+
+        then
+
+                printf "Core Dump - PASSED (Core dumps are restricted and setuid programs are prevented from dumping core)\n\n"
+
+
+
+        else
+
+                printf "Core Dump - FAILED (Setuid programs are not prevented from dumping core)\n\n"
+
+        fi
+
+
+
+else
+
+        printf "Core Dump - FAILED (Core dumps are not restricted)\n\n"
+
+fi
+
+
+=======================================================================================
+
+
+
+# 5.2 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m5.2 : Enable Randomized Virtual Memory Region Placement\e[0m\n"
+
+
+
+checkkernel=$(sysctl kernel.randomize_va_space)
+
+checkkerneldeep=$(sysctl kernel.randomize_va_space | awk -F ' ' '{print $3}')
+
+if [ "$checkkerneldeep" == 2 ]
+
+then
+
+        #If the configurations are CORRECT
+
+        printf "Virtual Memory Randomization Settings : PASSED"
+
+        printf "\nRandomization of Virtual Memory : "
+
+        printf "$checkkernel\n\n"
+
+else
+
+        #If the configuratiions are INCORRECT
+
+        printf "Virtual Memory Randomization Settings : FAILED"
+
+        echo 2 > /proc/sys/kernel/randomize_va_space
+
+        printf "\nConfiguring settings...."
+
+        printf "\nSettings has been configured : SUCCESSFUL"
+
+        printf "\nNew Randomization of Virtual Memory : "
+
+        newcheckkernel=$(sysctl kernel.randomize_va_space)
+
+        printf "$newcheckkernel\n\n"
+
+fi
+
+
+
+======================================================================================
+
+
+
+# 6.1.1 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m6.1.1 Remediation: Install the rsyslogpackage\e[0m\n"
+
+
+
+checkrsyslog=`rpm -q rsyslog | grep "^rsyslog"`
+
+if [ -n "$checkrsyslog" ]
+
+then
+
+        printf "Rsyslog : PASSED (Rsyslog is already installed)\n\n"
+
+else
+
+        printf "Rsyslog : FAILED (Rsyslog is not installed)"
+
+        printf "\nRsyslog service will now be installed"
+
+        yum -y install rsyslog &> /dev/nulli
+
+        systemctl start rsyslog
+
+        systmctl enable rsyslog
+
+        printf "\nRsyslog has been downloaded : SUCCESSFUL\n\n"
+
+fi
+
+
+
+======================================================================================
+
+
+
+# 6.1.2 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m6.1.2 : Activate the rsyslog Service\e[0m\n"
+
+
+
+checkrsysenable=`systemctl is-enabled rsyslog`
+
+if [ "$checkrsysenable" == "enabled" ]
+
+then
+
+        printf "Rsyslog Enabled - PASSED (Rsyslog is already enabled)\n\n"
+
+else
+
+        printf "Rsyslog Enabled - FAILED (Rsyslog is disabled)\n\n"
+
+fi
+
+========================================================================================
+
+# 6.1.3 coding
+
+
+
+printf "\n"
+
+echo -e "\e[4m6.1.3 Remediation : Configure /etc/rsyslog.conf\e[0m\n"
+
+
+
+#Checking /var/log/messages
+
+checkmessages=$(cat /etc/rsyslog.conf | grep "/var/log/messages" | awk -F ' ' '{print $1}')
+
+if [ "$checkmessages" != "auth,user.*" ]
+
+then
+
+        printf "/var/log/messages : FAILED (FAcility is configured incorrectly)"
+
+        #Change it here (If it is not a null)
+
+        if [ -n "$checkmessages" ]
+
+        then
+
+                sed -i /$checkmessages/d /etc/rsyslog.conf
+
+        fi
+
+                printf "\nauth,user.*   /var/log/messages" >> /etc/rsyslog.conf
+
+                printf "\nFacility will be now changed to auth,user.* for /var/log/messages.log\n\n"
+
+else
+
+        #Correct
+
+        printf "/var/log/messages : PASSED (Facility is configured correctly)\n\n"
+
+fi
+
+
+
+#checking /var/log/kern.log
+
+checkkern=$(cat /etc/rsyslog.conf | grep "/var/log/kern.log" | awk -F ' ' '{print $1}')
+
+if [ "$checkkern" != "kern.*" ]
+
+then
+
+        printf "/var/log/kern.log : FAILED (Facility is configured incorrectly)"
+
+         #Change it here
+
+        if [ -n "$checkkern" ]
+
+        then
+
+                sed -i /$checkkern/d /etc/rsyslog.conf
+
+        fi
+
+        printf "\nkern.*   /var/log/kern.log" >> /etc/rsyslog.conf
+
+        printf "\nFacility will be now changed to kern.* for /var/log/kern.log\n\n"
+
+else
+
+        #Correct
+
+        printf "/var/log/kern.log : PASSED (Facility is configured correctly)\n\n"
+
+fi
+
+
+
+#Checking /var/log/daemon.log
+
+checkdaemon=$(cat /etc/rsyslog.conf | grep "/var/log/daemon.log" | awk -F ' ' '{print $1}')
+
+if [ "$checkdaemon" != "daemon.*" ]
+
+then
+
+
+
+        printf "/var/log/daemon.log : FAILED (Facility is configured incorrectly)"
+
+        #Change it here
+
+        if [ -n "$checkdaemon" ]
+
+        then
+
+                sed -i /$checkdaemon/d /etc/rsyslog.conf
+
+        fi
+
+        printf "\ndaemon.*   /var/log/daemon.log" >> /etc/rsyslog.conf
+
+        printf "\nFacility will be now changed to daemon.* for /var/log/daemon.log\n\n"
+
+else
+
+        #Correct
+
+        printf "/var/log/daemon.log : PASSED (Facility is configured correctly)\n\n"
+
+fi
+
+
+
+#Checking Syslog
+
+checksyslog=$(cat /etc/rsyslog.conf | grep "/var/log/syslog" | awk -F ' ' '{print $1}')
+
+if [ "$checksyslog" != "syslog.*" ]
+
+then
+
+
+
+        printf "/var/log/syslog.log : FAILED (Facility is configured incorrectly)"
+
+        #Change it here
+
+        if [ -n "$checksyslog" ]
+
+        then
+
+                sed -i /$checksyslog/d /etc/rsyslog.conf
+
+        fi
+
+        printf "\nsyslog.*   /var/log/syslog.log" >> /etc/rsyslog.conf
+
+        printf "\nFacility will be now changed to syslog.* for /var/log/syslog.log\n\n"
+
+else
+
+        #Correct
+
+        printf "/var/log/syslog : PASSED (Facility is configured correctly)\n\n"
+
+fi
+
+
+
+# Checking unused.log
+
+checkunused=$(cat /etc/rsyslog.conf | grep "/var/log/unused.log" | awk -F ' ' '{print $1}')
+
+if [ "$checkunused" != "lpr,news,uucp,local0,local1,local2,local3,local4,local5,local6.*" ]
+
+then
+
+
+
+        printf "/var/log/unused.log : FAILED (Facility is configured incorrectly)"
+
+        #Change it here
+
+        if [ -n "$checkunused" ]
+
+        then
+
+                sed -i /$checkunused/d /etc/rsyslog.conf
+
+        fi
+
+        printf "\nlpr,news,uucp,local0,local1,local2,local3,local4,local5,local6.*   /var/log/unused.log" >> /etc/rsyslog.conf
+
+        printf "\nFacility will be now changed to lpr,news,uucp,local0,local1,local2,local3,local4,local5,local6.* for /var/log/unused.log\n\n"
+
+else
+
+        #Correct
+
+        printf "/var/log/unused.log : PASSED (Facility is configured correctly)\n\n"
+
+fi
+
+
+
+#Restarting rsyslog
+
+pkill -HUP rsyslogd
+
+====================================================================================
+
 # Start of 6.1.4 coding
 
 echo -e "\e[4m6.1.4 : Create and Set Permissions on rsyslog Log Files\e[0m"
