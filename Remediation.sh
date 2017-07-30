@@ -1949,6 +1949,61 @@ fi
 
 printf "\n\n"
 
+# 7.7 Lock Inactive User Accounts
+printf "\n"
+echo -e "\e[4m7.7 Lock Inactive User Accounts\e[0m\n"
+useradd -D -f 30
+echo "Inactive User Accounts has been locked"
+
+# 7.8 Ensure Password Fields are Not Empty
+printf "\n"
+echo -e "\e[4m7.8 Ensure Password Fields are Not Empty\e[0m\n"
+
+current=$(cat /etc/shadow | awk -F: '($2 == ""){print $1}')
+
+for line in ${current}
+do
+	/usr/bin/passwd -l ${line}	
+done
+echo "Password has been set for all users"
+
+
+# 7.9 Verify No Legacy "+" Entries Exist in /etc/passwd, /etc/shadow and /etc/group files
+printf "\n"
+echo -e "\e[4m7.9 Verify No Legacy \"+\" Entries Exist in /etc/passwd,/etc/shadow,/etc/group\e[0m\n"
+
+
+passwd=$(grep '^+:' /etc/passwd)
+shadow=$(grep '^+:' /etc/shadow)
+group=$(grep '^+:' /etc/group)
+
+for accounts in $passwd
+do
+  	if [ "$accounts" != "" ];then
+                userdel --force $accounts
+                groupdel --force $accounts
+fi
+done
+echo "No Legacy \"+\" Entries Exist in /etc/passwd,/etc/shadow,/etc/group"
+
+# 7.10 Verify No UID 0 Accounts Exist Other Than root
+printf "\n"
+echo -e "\e[4m7.10 Verify No UID 0 Accounts Exist Other Than Root\e[0m\n"
+
+
+remedy=$(/bin/cat /etc/passwd | /bin/awk -F: '($3 == 0) { print $1 }')
+
+for accounts in $remedy
+do
+	if [ "$accounts" != "root" ];then
+		userdel --force $accounts
+		groupdel --force $accounts
+fi
+done
+echo "No UID 0 Accounts Exist Other Than Root"
+
+#-----------------------------------------------------------------------------------------------------------------
+
 x=0
 
 while [ $x = 0 ]
