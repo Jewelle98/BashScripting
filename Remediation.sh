@@ -3126,6 +3126,65 @@ fi
 
 printf "\n\n"
 
+#10.1 remedy
+remsshprotocol=`grep "^Protocol 2" /etc/ssh/sshd_config`
+if [ "$remsshprotocol" != "Protocol 2" ]
+then
+	echo -e "\e[4m10.1 Set SSH Protocol to 2\e[0m\n"
+	sed -ie "23s/#//" /etc/ssh/sshd_config
+	echo "SSH Protocol has been set to 2"
+fi
+
+#10.2 remedy
+remsshloglevel=`grep "^LogLevel" /etc/ssh/sshd_config`
+if [ "$remsshloglevel" != "LogLevel INFO" ]
+then
+	echo -e "\e[4m10.2 Set LogLevel to INFO\e[0m\n"
+	sed -ie "43s/#//" /etc/ssh/sshd_config
+	echo "LogLevel has been set to INFO"
+fi
+
+#10.3 remedy
+remdeterusergroupownership=`grep "^LogLevel" /etc/ssh/sshd_config`
+if [ -z "$remdeterusergroupownership" ]
+then
+	echo -e "\e[4m10.3 Set Permissions on /etc/ssh/sshd_config\e[0m\n"
+	chown root:root /etc/ssh/sshd_config
+	chmod 600 /etc/ssh/sshd_config
+	echo "Permissions on /etc/ssh/sshd_config has been set"
+fi
+
+#10.4 remedy
+remsshx11forwarding=`grep "^X11Forwarding" /etc/ssh/sshd_config`
+if [ "$remsshx11forwarding" != "X11Forwarding no" ]
+then
+	echo -e "\e[4m10.4 Disable SSH X11 Forwarding\e[0m\n"
+	sed -ie "116s/#//" /etc/ssh/sshd_config
+	sed -ie "117s/^/#/" /etc/ssh/sshd_config
+	echo "SSH X11 Forwarding has been disabled"
+fi
+
+#10.5 remedy
+maxauthtries=`grep "^MaxAuthTries 4" /etc/ssh/sshd_config`
+if [ "$maxauthtries" != "MaxAuthTries 4" ]
+then
+	echo -e "\e[4m10.5 Set SSH MaxAuthTries to 4 or Less\e[0m\n"
+	sed -ie "50d" /etc/ssh/sshd_config
+	sed -ie "50iMaxAuthTries 4" /etc/ssh/sshd_config
+	echo "SSH MaxAuthTries has been set to 4 or Less"
+fi
+
+#10.6 remedy
+ignorerhosts=`grep "^IgnoreRhosts" /etc/ssh/sshd_config`
+if [ "$ignorerhosts" != "IgnoreRhosts yes" ]
+then
+	echo -e "\e[4m10.6 Set SSH IgnoreRhosts to Yes\e[0m\n"
+	sed -ie "73d" /etc/ssh/sshd_config
+	sed -ie "73iIgnoreRhosts yes" /etc/ssh/sshd_config
+	echo "SSH IgnoreRhosts has been set to Yes"
+fi
+printf "\n"
+
 #11.1
 checkPassAlgo=$(authconfig --test | grep hashing | grep sha512)
 checkPassRegex=".*sha512"
