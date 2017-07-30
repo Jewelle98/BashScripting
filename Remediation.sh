@@ -240,6 +240,74 @@ fi
 
 printf "\n\n"
 
+# 1.11 to 1.13
+echo -e "\e[4m1.11 to 1.13 : Add nodev, nosuid and no exec Option to Removable Media Partitions\e[0m\n"
+cdcheck=`grep cd /etc/fstab`
+if [ -n "$cdcheck" ]
+then
+	cdnodevcheck=`grep cdrom /etc/fstab | grep nodev`
+	cdnosuidcheck=`grep cdrom /etc/fstab | grep nosuid`
+	cdnosuidcheck=`grep cdrom /etc/fstab | grep noexec`
+	if [ -z "$cdnosuidcheck" ]
+	then
+			echo "/cdrom - FAILED (/cdrom not mounted with nodev option)"
+	elif [ -z "$cdnosuidcheck" ]
+	then
+			echo "/cdrom - FAILED (/cdrom not mounted with nosuid option)"
+	elif [ -z "$cdnosuidcheck" ]
+	then
+			echo "/cdrom - FAILED (/cdrom not mounted with noexec option)"
+	else
+		"/cdrom - PASSED (/cdrom is a mounted with nodev,nosuid,noexec option)"
+	fi
+else
+	echo "/cdrom - PASSED (/cdrom not mounted)"
+fi
+ 
+printf "\n\n"
+
+# 1.14
+echo -e "\e[4m1.14 : Set Sticky Bit on All World-Writable Directories\e[0m\n"
+checkstickybit=`df --local -P | awk {'if (NR1=1) print $6'} | xargs -l '{}' -xdev -type d \(--perm -0002 -a ! -perm -1000 \) 2> /dev/null`
+if [ -n "$checkstickybit" ]
+then
+	echo "Sticky Bit - FAILED (Sticky bit is not set on all world-writable directories)"
+else
+	echo "Sticky Bit - PASSED (Sticky bit is set on all world-writable directories)"
+fi
+
+printf "\n\n"
+
+# 1.15
+echo -e "\e[4m1.15 : Disable Mounting of Legacy Filesystems\e[0m\n"
+checkcramfs=`/sbin/lsmod | grep cramfs`
+checkfreevxfs=`/sbin/lsmod | grep freevxfs`
+checkjffs2=`/sbin/lsmod | grep jffs2`
+checkhfs=`/sbin/lsmod | grep hfs`
+checkhfsplus=`/sbin/lsmod | grep hfsplus`
+checksquashfs=`/sbin/lsmod | grep squashfs`
+checkudf=`/sbin/lsmod | grep udf`
+
+if [ -n "$checkcramfs" -o -n "$checkfreevxfs" -o -n "$checkjffs2" -o -n "$checkhfs" -o -n "$checkhfsplus" -o -n "$checksquashfs" -o -n "$checkudf" ]
+then
+	echo "Legacy File Systems - FAILED (Not all legacy file systems are disabled i.e. cramfs, freevxfs, jffs2, hfs, hfsplus, squashfs and udf)"
+else
+	echo "Legacy File Systems - PASSED (All legacy file systems are disabled i.e. cramfs, freevxfs, jffs2, hfs, hfsplus, squashfs and udf)"
+fi
+
+printf "\n\n"
+
+# 2.1 to 2.5
+echo -e "\e[4m2.1 to 2.5 : Remove telnet Server & Clients, rsh Server and Clients, NIS Server and Clients, tftp Server and Clients and xinetd\e[0m\n"
+services=( "telnet" "telnet-server" "rsh-server" "rsh" "ypserv" "ypbind" "tftp" "tftp-server" "xinetd" )
+
+for eachservice in ${services[*]}
+do 
+	yum -q list installed $eachservice &>/dev/null && echo "$eachservice - FAILED ($eachservice is Installed)" || echo "$eachservice - PASSED ($eachservice is not installed) "
+done 	
+
+printf "\n\n"
+
 checkxinetd=`yum list xinetd | grep "Available Packages"`
 
 if [ -n "$checkxinetd" ]
