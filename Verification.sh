@@ -320,6 +320,714 @@ else
 
 fi
 
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.3 Verification: Disable Avahi Server\e[0m\n"
+
+
+
+checkavahi=`systemctl status avahi-daemon | grep inactive`
+
+checkavahi1=`systemctl status avahi-daemon | grep disabled`
+
+
+
+# If the var $checkavahi AND $checkavahi1 are NOT NULL
+
+if [ -n "$checkavahi" -a -n "$checkavahi1" ]
+
+then
+
+        printf "Avahi-daemon - PASSED (Avahi-daemon is inactive and disabled)\n\n"
+
+
+
+# If var $checkavahi is NOT NULL AND $checkavahi1 is NULL
+
+elif [ -n "$checkavahi" -a -z "$checkavahi1" ]
+
+then
+
+        printf "Avahi-daemon - FAILED (Avahi-daemon is inactive but not disabled)\n\n"
+
+
+
+# If var $checkavahi is NULL AND $checkavahi1 Is NOT NULL
+
+elif [ -z "$checkavahi" -a -n "$checkavahi1" ]
+
+then
+
+        printf "Avahi-daemon - FAILED (Avahi-daemon is disabled but active)\n\n"
+
+
+
+else
+
+        printf "Avahi-daemon - FAILED (Avahi-daemon is active and enabled)\n\n"
+
+
+
+fi
+
+
+
+#To capture escaped strings and close the terminal
+
+read -n 1 -s -r -p "Press any key to exit!"
+
+kill -9 $PPID
+
+
+
+============================================================================
+
+
+
+
+
+# 3.4 Coding
+
+
+
+
+
+#! /bin/bash
+
+
+
+# To stop user from "Control-C"
+
+trap '' 2
+
+# To stop user from "Control-Z"
+
+trap '' SIGTSTP
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.4 Verification: Disable Print Server - cups\e[0m\n"
+
+
+
+checkcups=`systemctl status cups | grep inactive`
+
+checkcups1=`systemctl status cups | grep disabled`
+
+
+
+# If the variable $checkavahi AND $checkavahi1 are NOT NULL
+
+if [ -n "$checkcups" -a -n "$checkcups1" ]
+
+then
+
+        printf "Cups - PASSED (Cups is inactive and disabled)\n\n"
+
+
+
+# If variable $checkavahi is NOT NULL AND $checkavahi1 is NULL
+
+elif [ -n "$checkcups" -a -z "$checkcups1" ]
+
+then
+
+        printf "Cups - FAILED (Cups is inactive but not disabled\n\n)"
+
+
+
+# If var $checkavahi is NULL AND $checkavahi1 Is NOT NULL
+
+elif [ -z "$checkcups" -a -n "$checkcups1" ]
+
+then
+
+        printf "Cups - FAILED (Cups is disabled but active)\n\n"
+
+
+
+else
+
+        printf "Cups - FAILED (Cups is active and enabled)\n\n"
+
+fi
+
+
+
+#To capture escaped strings and close the terminal
+
+read -n 1 -s -r -p "Press any key to exit!"
+
+kill -9 $PPID
+
+
+
+
+
+==========================================================================
+
+
+
+# 3.5 Coding
+
+
+
+
+
+#! /bin/bash
+
+
+
+
+
+# To stop user from "Control-C"
+
+trap '' 2
+
+# To stop user from "Control-Z"
+
+trap '' SIGTSTP
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.5 Verification: Remove DHCP Server\e[0m\n"
+
+
+
+#Check if it has been installed
+
+checkyumdhcp=`yum list dhcp | grep "Available Packages" `
+
+#Check status of the server
+
+checkyumdhcpactive=`systemctl status dhcp | grep inactive `
+
+checkyumdhcpenable=`systemctl status dhcp | grep disabled `
+
+
+
+if [ -n "$checkyumdhcp" ]
+
+then
+
+        printf "DHCP Server - PASSED (DHCP is not installed)\n\n"
+
+
+
+else
+
+        # If DHCP is active and enabled (Both return NULL)
+
+        if [ -z "$checkyumdhcpactive" -a -z "$checkyumdhcpenable" ]
+
+        then
+
+                printf "DHCP - FAILED (DHCP is active and enabled)\n\n"
+
+
+
+        # If DHCP is active but disabled
+
+        elif [ -z "$checkyumdhcpactive" -a -n "$checkyumdhcpenable" ]
+
+        then
+
+                printf "DHCP - FAILED (DHCP is active but disabled)\n\n"
+
+
+
+        # If DHCP is inactive but enabled
+
+        elif [ -n "$checkyumdhcpactive" -a -z "$checkyumdhcpenable" ]
+
+        then
+
+                printf "DHCP - FAILED (DHCP is inactive but enabled)\n\n"
+
+        else
+
+                printf "DHCP - FAILED (DHCP is inactive but disabled)\n\n"
+
+        fi
+
+fi
+
+
+
+#To capture escaped strings and close the terminal
+
+read -n 1 -s -r -p "Press any key to exit!"
+
+kill -9 $PPID
+
+
+
+===================================================================================
+
+
+
+# 3.6 coding
+
+
+
+
+
+#! /bin/bash
+
+
+
+# To stop user from "Control-C"
+
+trap '' 2
+
+# To stop user from "Control-Z"
+
+trap '' SIGTSTP
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.6 Verification: Configure Network Time Protocol (NTP)\e[0m\n"
+
+
+
+checkntp=`yum list ntp | grep "Installed Packages" `
+
+checkntp1=`grep "^restrict default kod nomodify notrap nopeer noquery" /etc/ntp.conf`
+
+checkntp2=`grep "^restrict -6 default kod nomodify notrap nopeer noquery" /etc/ntp.conf`
+
+checkntp3=`grep "^server" /etc/ntp.conf | grep server`
+
+checkntp4=`grep 'OPTIONS="-u ntp:ntp -p /var/run/ntpd.pid"' /etc/sysconfig/ntpd `
+
+
+
+#If NTP is installed
+
+if [ -n "$checkntp" ]
+
+then
+
+if [ -n "$checkntp1" ]
+
+then
+
+        if [ -n "$checkntp2" ]
+
+        then
+
+                if [ -n "$checkntp3" ]
+
+                        then
+
+                                if [ -n "$checkntp4" ]
+
+                                then
+
+                                        printf "NTP - PASSED (NTP has been properly configured)\n\n"
+
+                                        
+
+                                else 
+
+                                        printf "NTP - FAILED (Option has not been configured in /etc/sysconfig/ntpd)\n\n"
+
+                                        
+
+                                fi
+
+                else
+
+                        printf "NTP - FAILED (Failed to list down NTP servers)\n\n"
+
+                        
+
+                fi
+
+        else 
+
+                printf "NTP - FAILED (Failed to implement restrict -6 default kod nomodify notrap nopeer noquery)\n\n"
+
+                
+
+        fi
+
+else 
+
+        printf "NTP - FAILED (Failed to implement restrict default kod nomodify notrap nopeer noquery)\n\n"
+
+        
+
+fi 
+
+else 
+
+        printf "NTP - FAILED (NTP is not installed)\n\n"
+
+        
+
+fi
+
+
+
+#To capture escaped strings and close the terminal
+
+read -n 1 -s -r -p "Press any key to exit!"
+
+kill -9 $PPID
+
+
+
+
+
+=====================================================================================
+
+
+
+# 3.7 coding
+
+
+
+#! /bin/bash
+
+
+
+# To stop user from "Control-C"
+
+trap '' 2
+
+
+
+# To stop user from "Control-Z"
+
+trap '' SIGTSTP
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.7 Verification: Remove LDAP\e[0m\n"
+
+
+
+
+
+checkldapclients=`yum list openldap-clients | grep 'Available Packages'`
+
+checkldapservers=`yum list openldap-servers | grep 'Available Packages'`
+
+
+
+
+
+if [ -n "checkldapclients" -a -n "checkldapservers" ]
+
+then 
+
+        printf "LDAP - PASSED (LDAP server and client are both not installed)\n\n"
+
+        
+
+elif [ -n "checkldapclients" -a -z "checkldapservers" ]
+
+then
+
+        printf "LDAP - FAILED (LDAP server is installed)\n\n"
+
+
+
+elif [ -z "checkldapclients" -a -n "checkldapservers" ]
+
+then
+
+        printf " LDAP - FAILED (LDAP client is installed)\n\n"
+
+else 
+
+        printf "LDAP - FAILED (Both LDAP client and server are installed)\n\n"
+
+fi 
+
+
+
+
+
+#To capture escaped strings and close the terminal
+
+read -n 1 -s -r -p "Press any key to exit!"
+
+kill -9 $PPID
+
+
+
+===================================================================================
+
+
+
+# 3.8 coding
+
+
+
+#! /bin/bash
+
+
+
+# To stop user from "Control-C"
+
+trap '' 2
+
+
+
+# To stop user from "Control-Z"
+
+trap '' SIGTSTP
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.8  Verification: Disable NFS and RPC\e[0m\n"
+
+
+
+nfsservices=( "nfs-lock" "nfs-secure" "rpcbind" "nfs-idmap" "nfs-secure-server" )
+
+
+
+
+
+for eachnfsservice in ${nfsservices[*]}
+
+do 
+
+        checknfsservices=`systemctl is-enabled $eachnfsservice | grep enabled`
+
+        if [ -z "$checknfsservices" ]
+
+        then 
+
+                printf "$eachnfsservice - PASSED ($eachnfsservice is disabled)\n\n"
+
+               
+
+        else 
+
+                printf " $eachnfsservice - FAILED ($eachnfsservice is enabled)\n\n"           
+
+        fi
+
+done    
+
+
+
+
+
+#To capture escaped strings and close the terminal
+
+read -n 1 -s -r -p "Press any key to exit!"
+
+kill -9 $PPID
+
+
+
+
+
+=======================================================================================
+
+
+
+# 3.9 coding
+
+
+
+#! /bin/bash
+
+
+
+# To stop user from "Control-C"
+
+trap '' 2
+
+
+
+# To stop user from "Control-Z"
+
+trap '' SIGTSTP
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.9 Verification: Remove DNS, FTP, HTTP, HTTP-Proxy, SNMP\e[0m\n"
+
+
+
+standardservices=( "named" "vsftpd" "httpd" "squid.service" "snmpd")
+
+
+
+for eachstandardservice in ${standardservices[*]}
+
+do
+
+        checkserviceexist=`systemctl status $eachstandardservice | grep not-found`
+
+        if [ -z "$checkserviceexist" ]
+
+        then
+
+                printf "$eachstandardservice - PASSED ($eachstandardservice does not exist in the system)\n\n"
+
+
+
+        else
+
+                checkstandardservices=`systemctl status $eachstandardservice | grep disabled`
+
+                checkstandardservices1=`systemctl status $eachstandardservice | grep inactive`
+
+
+
+                if [ -z "$checkstandardservices" -a -z "$checkstandardservices1" ]
+
+                then
+
+                        printf "$eachstandardservice - FAILED ($eachstandardservice is active and enabled)\n\n"
+
+
+
+                elif [ -z "$checkstandardservices" -a -n "$checkstandardservices1" ]
+
+                then
+
+                        printf "$eachstandardservice - FAILED ($eachstandardservice is inactive but enabled)\n\n"
+
+
+
+                elif [ -n "$checkstandardservices" -a -z "$checkstandardservices1" ]
+
+                then
+
+                        printf "$eachstandardservice - FAILED ($eachstandardservice is disabled but active)\n\n"
+
+
+
+                else
+
+                        printf "$eachstandardservice - PASSED ($eachstandardservice is disabled and inactive)\n\n"
+
+
+
+                fi
+
+        fi
+
+done
+
+
+
+
+
+#To capture escaped strings and close the terminal
+
+read -n 1 -s -r -p "Press any key to exit!"
+
+kill -9 $PPID
+
+
+
+========================================================================================
+
+
+
+# 3.10 coding
+
+
+
+#!/bin/bash
+
+
+
+# To stop user from "Control-C"
+
+trap '' 2
+
+
+
+# To stop user from "Control-Z"
+
+trap '' SIGTSTP
+
+
+
+# To underline the title of this sh file
+
+printf "\n"
+
+echo -e "\e[4m3.10 Verification: Configure Mail Transfer Agent for Local-Only Mode\e[0m\n"
+
+
+
+checkmailtransferagent=`netstat -an | grep ":25[[:space:]]"`
+
+
+
+if [ -n "$checkmailtransferagent" ]
+
+then
+
+        checklistening=`netstat -an | grep LISTEN`
+
+        if [ -n "$checklistening" ]
+
+        then
+
+                checklocaladdress=`netstat -an | grep [[:space:]]127.0.0.1:25[[:space:]] | grep LISTEN`
+
+                if [ -n "$checklocaladdress" ]
+
+                then
+
+                        printf "MTA - PASSED (Mail Transfer Agent is listening on the loopback address)\n\n"
+
+                else
+
+                        printf "MTA - FAILED (Mail Transfer Agent is not listening on the loopback address)\n\n"
+
+                fi
+
+        else
+
+                printf "MTA - FAILED (Mail Transfer Agent is not in listening mode)\n\n"
+
+        fi
+
+else
+
+        printf "MTA - FAILED (Mail Transfer Agent is not configured/installed)\n\n"
+
+fi
+
 # 6.1.3
 
 echo -e "\e[4m6.1.3 and 6.1.4 : Configure /etc/rsyslog.conf and Create and Set Permissions on rsyslog Log Files\e[0m\n"
